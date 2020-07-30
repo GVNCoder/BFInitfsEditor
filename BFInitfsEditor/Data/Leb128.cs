@@ -58,7 +58,7 @@ namespace BFInitfsEditor.Data
             return bytesList.ToArray();
         }
 
-        public long ReadLEB128Signed(byte[] buffer, int beginPosition)
+        public long ReadLEB128Signed(byte[] buffer, ref int beginPosition)
         {
             var value = 0L;
             var shift = 0;
@@ -82,7 +82,7 @@ namespace BFInitfsEditor.Data
             return value;
         }
 
-        public ulong ReadLEB128Unsigned(byte[] buffer, int beginPosition)
+        public ulong ReadLEB128Unsigned(byte[] buffer, ref int beginPosition)
         {
             var value = 0UL;
             var shift = 0;
