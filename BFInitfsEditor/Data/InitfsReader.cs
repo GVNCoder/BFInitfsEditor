@@ -96,7 +96,7 @@ namespace BFInitfsEditor.Data
                     case 19: //payload
                     {
                         var tsize = leb128.ReadLEB128Unsigned(data, ref position);
-                        using (var file = File.Create(fname, (int) tsize))
+                        using (var file = File.Create(fname))
                         {
                             file.Write(data, position, (int) tsize);
                         }
