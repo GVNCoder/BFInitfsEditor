@@ -11,12 +11,13 @@ namespace BFInitfsEditor.Extension
         private const long SIGN_EXTEND_MASK = -1L;
         private const int INT64_BITSIZE = (sizeof(long) * 8);
 
-        public static void WriteLEB128Signed(this Stream stream, long value) => WriteLEB128Signed(stream, value, out _);
+        public static void WriteLEB128Signed(this BinaryReader reader, long value) => WriteLEB128Signed(reader, value, out _);
 
-        public static void WriteLEB128Signed(this Stream stream, long value, out int bytes)
+        public static void WriteLEB128Signed(this BinaryReader reader, long value, out int bytes)
         {
             bytes = 0;
             var more = true;
+            var stream = reader.BaseStream;
 
             while (more)
             {
@@ -32,12 +33,13 @@ namespace BFInitfsEditor.Extension
             };
         }
 
-        public static void WriteLEB128Unsigned(this Stream stream, ulong value) => WriteLEB128Unsigned(stream, value, out _);
+        public static void WriteLEB128Unsigned(this BinaryReader reader, ulong value) => WriteLEB128Unsigned(reader, value, out _);
 
-        public static void WriteLEB128Unsigned(this Stream stream, ulong value, out int bytes)
+        public static void WriteLEB128Unsigned(this BinaryReader reader, ulong value, out int bytes)
         {
             bytes = 0;
             var more = true;
+            var stream = reader.BaseStream;
 
             while (more)
             {
@@ -52,15 +54,16 @@ namespace BFInitfsEditor.Extension
             };
         }
 
-        public static long ReadLEB128Signed(this Stream stream) => ReadLEB128Signed(stream, out _);
+        public static long ReadLEB128Signed(this BinaryReader reader) => ReadLEB128Signed(reader, out _);
 
-        public static long ReadLEB128Signed(this Stream stream, out int bytes)
+        public static long ReadLEB128Signed(this BinaryReader reader, out int bytes)
         {
             bytes = 0;
 
             var value = 0L;
             var shift = 0;
             bool more = true, signBitSet = false;
+            var stream = reader.BaseStream;
 
             while (more)
             {
@@ -84,15 +87,16 @@ namespace BFInitfsEditor.Extension
             return value;
         }
 
-        public static ulong ReadLEB128Unsigned(this Stream stream) => ReadLEB128Unsigned(stream, out _);
+        public static ulong ReadLEB128Unsigned(this BinaryReader reader) => ReadLEB128Unsigned(reader, out _);
 
-        public static ulong ReadLEB128Unsigned(this Stream stream, out int bytes)
+        public static ulong ReadLEB128Unsigned(this BinaryReader reader, out int bytes)
         {
             bytes = 0;
 
             var value = 0UL;
             var shift = 0;
             var more = true;
+            var stream = reader.BaseStream;
 
             while (more)
             {
