@@ -4,7 +4,7 @@ using BFInitfsEditor.Model;
 
 namespace BFInitfsEditor.Service
 {
-    public interface IInitfsReader : IDisposable
+    public interface IInitfsReader
     {
         void Read(Stream source, out InitfsEntity entity);
     }
