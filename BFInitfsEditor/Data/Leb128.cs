@@ -1,23 +1,23 @@
-﻿using System;
-using System.IO;
+﻿using System.Collections.Generic;
+using BFInitfsEditor.Service;
 
-namespace BFInitfsEditor.Extension
+namespace BFInitfsEditor.Data
 {
     /// <summary>
     /// See https://en.wikipedia.org/wiki/LEB128 for details
+    /// Slightly reworked from https://github.com/rzubek/mini-leb128/blob/master/LEB128.cs
     /// </summary>
-    public static class Leb128Extension
+    public class Leb128 : ILeb128
     {
         private const long SIGN_EXTEND_MASK = -1L;
         private const int INT64_BITSIZE = (sizeof(long) * 8);
 
-        public static void WriteLEB128Signed(this BinaryReader reader, long value) => WriteLEB128Signed(reader, value, out _);
+        #region ILeb128
 
-        public static void WriteLEB128Signed(this BinaryReader reader, long value, out int bytes)
+        public byte[] BuildLEB128Signed(long value)
         {
-            bytes = 0;
             var more = true;
-            var stream = reader.BaseStream;
+            var bytesList = new List<byte>(2);
 
             while (more)
             {
@@ -28,18 +28,16 @@ namespace BFInitfsEditor.Extension
                 more = !((value == 0 && !signBitSet) || (value == -1 && signBitSet));
                 if (more) { chunk |= 0x80; } // set msb marker that more bytes are coming
 
-                stream.WriteByte(chunk);
-                bytes += 1;
+                bytesList.Add(chunk);
             };
+
+            return bytesList.ToArray();
         }
 
-        public static void WriteLEB128Unsigned(this BinaryReader reader, ulong value) => WriteLEB128Unsigned(reader, value, out _);
-
-        public static void WriteLEB128Unsigned(this BinaryReader reader, ulong value, out int bytes)
+        public byte[] BuildLEB128Unsigned(ulong value)
         {
-            bytes = 0;
             var more = true;
-            var stream = reader.BaseStream;
+            var bytesList = new List<byte>(2);
 
             while (more)
             {
@@ -49,29 +47,22 @@ namespace BFInitfsEditor.Extension
                 more = value != 0;
                 if (more) { chunk |= 0x80; } // set msb marker that more bytes are coming
 
-                stream.WriteByte(chunk);
-                bytes += 1;
+                bytesList.Add(chunk);
             };
+
+            return bytesList.ToArray();
         }
 
-        public static long ReadLEB128Signed(this BinaryReader reader) => ReadLEB128Signed(reader, out _);
-
-        public static long ReadLEB128Signed(this BinaryReader reader, out int bytes)
+        public long ReadLEB128Signed(byte[] buffer)
         {
-            bytes = 0;
-
             var value = 0L;
             var shift = 0;
             bool more = true, signBitSet = false;
-            var stream = reader.BaseStream;
+            var i = 0;
 
             while (more)
             {
-                var next = stream.ReadByte();
-                if (next < 0) { throw new InvalidOperationException("Unexpected end of stream"); }
-
-                var b = (byte) next;
-                bytes += 1;
+                var b = buffer[i++];
 
                 more = (b & 0x80) != 0; // extract msb
                 signBitSet = (b & 0x40) != 0; // sign bit is the msb of a 7-bit byte, so 0x40
@@ -87,24 +78,16 @@ namespace BFInitfsEditor.Extension
             return value;
         }
 
-        public static ulong ReadLEB128Unsigned(this BinaryReader reader) => ReadLEB128Unsigned(reader, out _);
-
-        public static ulong ReadLEB128Unsigned(this BinaryReader reader, out int bytes)
+        public ulong ReadLEB128Unsigned(byte[] buffer)
         {
-            bytes = 0;
-
             var value = 0UL;
             var shift = 0;
             var more = true;
-            var stream = reader.BaseStream;
+            var i = 0;
 
             while (more)
             {
-                var next = stream.ReadByte();
-                if (next < 0) { throw new InvalidOperationException("Unexpected end of stream"); }
-
-                var b = (byte) next;
-                bytes += 1;
+                var b = buffer[i++];
 
                 more = (b & 0x80) != 0;   // extract msb
                 var chunk = b & 0x7fUL; // extract lower 7 bits
@@ -114,5 +97,7 @@ namespace BFInitfsEditor.Extension
 
             return value;
         }
+
+        #endregion
     }
 }

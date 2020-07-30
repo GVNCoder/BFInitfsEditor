@@ -31,8 +31,8 @@ namespace BFInitfsEditor.Data
                 reader.SkipZeroBytes();
 
                 var encryptedData = _ReadData(reader);
-
-                // TODO: Decrypt data here
+                var decryptor = XOR.GetInstance();
+                var decryptedData = decryptor.Decrypt(encryptedData, encryptionKey);
 
                 var contentSize = reader.ReadLEB128Unsigned(); // should be 19980929
 

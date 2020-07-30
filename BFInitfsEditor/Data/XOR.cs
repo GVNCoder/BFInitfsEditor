@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using BFInitfsEditor.Service;
 
 namespace BFInitfsEditor.Data
@@ -19,7 +20,7 @@ namespace BFInitfsEditor.Data
 
         #region Private helpers
 
-        private byte[] _XOR(byte[] data, byte[] key)
+        private static byte[] _XOR(byte[] data, IReadOnlyList<byte> key)
         {
             var result = new byte[data.Length];
             Array.Copy(data, result, data.Length);

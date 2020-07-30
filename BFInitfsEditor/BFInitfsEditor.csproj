@@ -64,12 +64,13 @@
     </Compile>
     <Compile Include="Data\InitfsConstants.cs" />
     <Compile Include="Data\InitfsReader.cs" />
+    <Compile Include="Data\Leb128.cs" />
     <Compile Include="Data\XOR.cs" />
     <Compile Include="Extension\BinaryReaderExtension.cs" />
-    <Compile Include="Extension\Leb128Extension.cs" />
     <Compile Include="Model\InitfsEntity.cs" />
     <Compile Include="Service\IInitfsReader.cs" />
     <Compile Include="Service\IInitfsWriter.cs" />
+    <Compile Include="Service\ILeb128.cs" />
     <Compile Include="Service\IXOR.cs" />
     <Compile Include="View\MainWindowView.xaml.cs">
       <DependentUpon>MainWindowView.xaml</DependentUpon>
