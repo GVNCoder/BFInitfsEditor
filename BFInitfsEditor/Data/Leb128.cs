@@ -12,6 +12,11 @@ namespace BFInitfsEditor.Data
         private const long SIGN_EXTEND_MASK = -1L;
         private const int INT64_BITSIZE = (sizeof(long) * 8);
 
+        // private ctor
+        private Leb128() { }
+
+        public static ILeb128 GetInstance() => new Leb128();
+
         #region ILeb128
 
         public byte[] BuildLEB128Signed(long value)
@@ -53,16 +58,15 @@ namespace BFInitfsEditor.Data
             return bytesList.ToArray();
         }
 
-        public long ReadLEB128Signed(byte[] buffer)
+        public long ReadLEB128Signed(byte[] buffer, int beginPosition)
         {
             var value = 0L;
             var shift = 0;
             bool more = true, signBitSet = false;
-            var i = 0;
 
             while (more)
             {
-                var b = buffer[i++];
+                var b = buffer[beginPosition++];
 
                 more = (b & 0x80) != 0; // extract msb
                 signBitSet = (b & 0x40) != 0; // sign bit is the msb of a 7-bit byte, so 0x40
@@ -78,16 +82,15 @@ namespace BFInitfsEditor.Data
             return value;
         }
 
-        public ulong ReadLEB128Unsigned(byte[] buffer)
+        public ulong ReadLEB128Unsigned(byte[] buffer, int beginPosition)
         {
             var value = 0UL;
             var shift = 0;
             var more = true;
-            var i = 0;
 
             while (more)
             {
-                var b = buffer[i++];
+                var b = buffer[beginPosition++];
 
                 more = (b & 0x80) != 0;   // extract msb
                 var chunk = b & 0x7fUL; // extract lower 7 bits

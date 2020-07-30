@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+
 using BFInitfsEditor.Extension;
 using BFInitfsEditor.Model;
 using BFInitfsEditor.Service;
@@ -30,11 +31,13 @@ namespace BFInitfsEditor.Data
 
                 reader.SkipZeroBytes();
 
-                var encryptedData = _ReadData(reader);
                 var decryptor = XOR.GetInstance();
+                var leb128 = Leb128.GetInstance();
+
+                var encryptedData = _ReadData(reader);
                 var decryptedData = decryptor.Decrypt(encryptedData, encryptionKey);
 
-                var contentSize = reader.ReadLEB128Unsigned(); // should be 19980929
+                var contentSize = leb128.ReadLEB128Unsigned(decryptedData, 0);
 
                 throw new NotImplementedException();
             }
@@ -49,9 +52,9 @@ namespace BFInitfsEditor.Data
         private bool _ValidateHeader(int header) =>
             InitfsConstants.DICE_HEADER_TYPE1 == header || InitfsConstants.DICE_HEADER_TYPE2 == header;
 
-        private byte[] _ReadKey(BinaryReader reader) => reader.ReadBytes(InitfsConstants.MAGIC_SIZE);
+        private static byte[] _ReadKey(BinaryReader reader) => reader.ReadBytes(InitfsConstants.MAGIC_SIZE);
 
-        private byte[] _ReadData(BinaryReader reader) => reader.ReadAllBytes();
+        private static byte[] _ReadData(BinaryReader reader) => reader.ReadAllBytes();
 
         #endregion
     }
