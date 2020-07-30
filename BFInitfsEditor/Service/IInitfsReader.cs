@@ -6,6 +6,6 @@ namespace BFInitfsEditor.Service
 {
     public interface IInitfsReader
     {
-        void Read(Stream source, out InitfsEntity entity);
+        InitfsEntity Read(Stream source);
     }
 }
