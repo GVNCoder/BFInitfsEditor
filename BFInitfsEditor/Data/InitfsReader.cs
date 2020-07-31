@@ -144,7 +144,7 @@ namespace BFInitfsEditor.Data
                         position += (int) entry.FileSize;
 
                         break;
-                    default: break;
+                    default: return null;
                 }
             }
 
