@@ -6,9 +6,7 @@
 
         // 4 byte zero
 
-        // 1 byte 'x' begin hash indicator
-        public byte[] Hash { get; set; }
-        // 1 byte 'x' end hash indicator
+        public byte[] Hash { get; set; } // 'x' hash 'x'
 
         // 30 byte zero
 
@@ -16,6 +14,6 @@
 
         // 3 zero bytes
 
-        public Data Data { get; set; }
+        public Data Data { get; set; } = new Data();
     }
 }

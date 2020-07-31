@@ -26,30 +26,35 @@ namespace BFInitfsEditor.Data
 
         public Entity Read(Stream source)
         {
-            Entity entity = null;
+            var entity = _BuildEntity();
+            var data = entity.Data;
 
             using (var reader = new BinaryReader(source))
             {
-                reader.Seek(4, SeekOrigin.Begin); // skip DICE header
+                // read DICE header
+                entity.Header = reader.ReadBytes(4);
                 reader.Seek(4, SeekOrigin.Current); // skip 4 zero bytes
-                reader.Seek(1, SeekOrigin.Current); // skip 'x' begin indicator
-                reader.Seek(InitfsConstants.HASH_SIZE, SeekOrigin.Current);
-                reader.Seek(1, SeekOrigin.Current); // skip 'x' end indicator
+
+                // read initfs_ hash 'x' + hash + 'x'
+                entity.Hash = reader.ReadBytes(InitfsConstants.HASH_SIZE + 2);
                 reader.Seek(30, SeekOrigin.Current); // skip 30 zero bytes
 
-                var encryptionKey = _ReadKey(reader); // read XOR key
-
+                // read XOR key
+                entity.EncryptionKey = _ReadKey(reader);
                 reader.Seek(3, SeekOrigin.Current); // skip 3 zero bytes
 
+                // decrypt data
                 var encryptedData = _ReadData(reader);
-                var decryptedData = _xor.Decrypt(encryptedData, encryptionKey);
-                var position = 0;
-                var maybeContentSize = _leb128.ReadLEB128Unsigned(decryptedData, ref position);
+                var decryptedData = _xor.Decrypt(encryptedData, entity.EncryptionKey);
 
-                while (_ReadBlocks(decryptedData, ref position)) { }
+                // parse payload
+                var position = 0;
+                data.DataSize = _leb128.ReadLEB128Unsigned(decryptedData, ref position);
+
+                
             }
 
-            return null;
+            return entity;
         }
 
         #endregion
