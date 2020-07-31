@@ -5,6 +5,6 @@ namespace BFInitfsEditor.Service
 {
     public interface IInitfsWriter
     {
-        void Write(Stream target, InitfsEntity entity);
+        void Write(Stream target, Entity entity);
     }
 }

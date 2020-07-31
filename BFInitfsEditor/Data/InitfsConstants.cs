@@ -8,5 +8,7 @@
         public const int DICE_HEADER_TYPE2 = 0x00D1CE01;
         public const int DICE_HEADER_SIZE = 4;
         public const int HASH_SIZE = 256;
+        public const int TYPE_STRING = 7;
+        public const int TYPE_PAYLOAD = 19;
     }
 }

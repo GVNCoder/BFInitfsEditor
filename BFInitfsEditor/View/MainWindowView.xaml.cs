@@ -1,18 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.IO;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
+
 using BFInitfsEditor.Data;
+using BFInitfsEditor.Model;
 
 namespace BFInitfsEditor.View
 {
@@ -27,11 +17,12 @@ namespace BFInitfsEditor.View
             InitializeComponent();
 
             // Tests
-            using (var file = File.OpenRead("initfs_Linux"))
-            {
-                var reader = InitfsReader.GetInstance();
-                var entity = reader.Read(file);
-            }
+            var fileContent = File.ReadAllBytes("initfs_Linux");
+            var reader = InitfsReader.GetInstance();
+
+            Entity entity = null;
+            using (var memoryStream = new MemoryStream(fileContent, false))
+                entity = reader.Read(memoryStream);
         }
     }
 }

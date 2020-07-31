@@ -1,7 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Text;
+
 using BFInitfsEditor.Extension;
 using BFInitfsEditor.Model;
 using BFInitfsEditor.Service;
@@ -12,35 +12,41 @@ namespace BFInitfsEditor.Data
     {
         public static IInitfsReader GetInstance() => new InitfsReader();
 
+        private readonly IXOR _xor;
+        private readonly ILeb128 _leb128;
+
         // private ctor 
-        private InitfsReader() { }
+        private InitfsReader()
+        {
+            _xor = XOR.GetInstance();
+            _leb128 = Leb128.GetInstance();
+        }
 
         #region IInitfsReader
 
-        public InitfsEntity Read(Stream source)
+        public Entity Read(Stream source)
         {
+            Entity entity = null;
+
             using (var reader = new BinaryReader(source))
             {
                 reader.Seek(4, SeekOrigin.Begin); // skip DICE header
-                reader.SkipZeroBytes();
+                reader.Seek(4, SeekOrigin.Current); // skip 4 zero bytes
                 reader.Seek(1, SeekOrigin.Current); // skip 'x' begin indicator
                 reader.Seek(InitfsConstants.HASH_SIZE, SeekOrigin.Current);
                 reader.Seek(1, SeekOrigin.Current); // skip 'x' end indicator
-                reader.SkipZeroBytes();
+                reader.Seek(30, SeekOrigin.Current); // skip 30 zero bytes
 
                 var encryptionKey = _ReadKey(reader); // read XOR key
 
-                reader.SkipZeroBytes();
-
-                var decryptor = XOR.GetInstance();
-                var leb128 = Leb128.GetInstance();
+                reader.Seek(3, SeekOrigin.Current); // skip 3 zero bytes
 
                 var encryptedData = _ReadData(reader);
-                var decryptedData = decryptor.Decrypt(encryptedData, encryptionKey);
+                var decryptedData = _xor.Decrypt(encryptedData, encryptionKey);
                 var position = 0;
-                var maybeContentSize = leb128.ReadLEB128Unsigned(decryptedData, ref position);
+                var maybeContentSize = _leb128.ReadLEB128Unsigned(decryptedData, ref position);
 
-                while (_ReadBlocks(leb128, decryptedData, ref position)) { }
+                while (_ReadBlocks(decryptedData, ref position)) { }
             }
 
             return null;
@@ -50,7 +56,7 @@ namespace BFInitfsEditor.Data
 
         #region Private helpers
 
-        private InitfsEntity _BuildEntity() => new InitfsEntity();
+        private Entity _BuildEntity() => new Entity();
 
         private bool _ValidateHeader(int header) =>
             InitfsConstants.DICE_HEADER_TYPE1 == header || InitfsConstants.DICE_HEADER_TYPE2 == header;
@@ -68,12 +74,12 @@ namespace BFInitfsEditor.Data
             return str.ToString();
         }
 
-        private static bool _ReadBlocks(ILeb128 leb128, byte[] data, ref int position)
+        private bool _ReadBlocks(byte[] data, ref int position)
         {
-            var maybeContentSize = leb128.ReadLEB128Unsigned(data, ref position);
+            var maybeContentSize = _leb128.ReadLEB128Unsigned(data, ref position);
             position += 2; // skip two unknown bytes
             var typeName = _ReadString(data, ref position);
-            var structSize = leb128.ReadLEB128Unsigned(data, ref position);
+            var structSize = _leb128.ReadLEB128Unsigned(data, ref position);
 
             string ts, ts1, fname = string.Empty;
             while (data[position] != 0)
@@ -83,8 +89,8 @@ namespace BFInitfsEditor.Data
 
                 switch (sType)
                 {
-                    case 7: //string
-                        leb128.ReadLEB128Unsigned(data, ref position); //skip string size
+                    case InitfsConstants.TYPE_STRING: //string
+                        _leb128.ReadLEB128Unsigned(data, ref position); //skip string size
                         ts1 = _ReadString(data, ref position);
 
                         if (ts == "name")
@@ -93,9 +99,9 @@ namespace BFInitfsEditor.Data
                             fname = fname.Replace('/', '-');
                         }
                         break;
-                    case 19: //payload
+                    case InitfsConstants.TYPE_PAYLOAD: //payload
                     {
-                        var tsize = leb128.ReadLEB128Unsigned(data, ref position);
+                        var tsize = _leb128.ReadLEB128Unsigned(data, ref position);
                         using (var file = File.Create(fname))
                         {
                             file.Write(data, position, (int) tsize);
