@@ -83,8 +83,10 @@ namespace BFInitfsEditor.Data
         private static string _ReadString(IReadOnlyList<byte> data, ref int position)
         {
             var str = new StringBuilder();
-            while (data[position] != 0x00)
+
+            while (data[position] != 0)
                 str.Append((char)data[position++]);
+
             ++position; // skip end of string
             return str.ToString();
         }
