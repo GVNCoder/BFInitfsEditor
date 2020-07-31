@@ -27,7 +27,7 @@ namespace BFInitfsEditor.Data
 
         public Entity Read(Stream source)
         {
-            var entity = _BuildEntity();
+            var entity = new Entity();
             var data = entity.Data;
 
             using (var reader = new BinaryReader(source))
@@ -72,8 +72,6 @@ namespace BFInitfsEditor.Data
         #endregion
 
         #region Private helpers
-
-        private Entity _BuildEntity() => new Entity();
 
         private bool _ValidateHeader(int header) =>
             InitfsConstants.DICE_HEADER_TYPE1 == header || InitfsConstants.DICE_HEADER_TYPE2 == header;
