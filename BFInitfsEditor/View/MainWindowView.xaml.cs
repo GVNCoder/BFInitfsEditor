@@ -19,10 +19,14 @@ namespace BFInitfsEditor.View
             // Tests
             var fileContent = File.ReadAllBytes("initfs_Linux");
             var reader = InitfsReader.GetInstance();
+            var writer = InitfsWriter.GetInstance();
 
             Entity entity = null;
             using (var memoryStream = new MemoryStream(fileContent, false))
                 entity = reader.Read(memoryStream);
+
+            using (var file = File.OpenWrite("initfs_Linux_new"))
+                writer.Write(file, entity);
         }
     }
 }

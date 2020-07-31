@@ -64,6 +64,7 @@
     </Compile>
     <Compile Include="Data\InitfsConstants.cs" />
     <Compile Include="Data\InitfsReader.cs" />
+    <Compile Include="Data\InitfsWriter.cs" />
     <Compile Include="Data\Leb128.cs" />
     <Compile Include="Data\XOR.cs" />
     <Compile Include="Extension\BinaryReaderExtension.cs" />
