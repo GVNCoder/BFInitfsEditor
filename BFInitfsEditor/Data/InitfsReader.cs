@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
@@ -49,9 +50,20 @@ namespace BFInitfsEditor.Data
 
                 // parse payload
                 var position = 0;
+                var dataEntries = new List<FileEntry>();
+                
+                // read unknown data
                 data.DataSize = _leb128.ReadLEB128Unsigned(decryptedData, ref position);
 
-                
+                while (position < decryptedData.Length)
+                {
+                    var entry = _ReadEntry(decryptedData, ref position);
+                    if (entry == null) break;
+
+                    dataEntries.Add(entry);
+                }
+
+                data.Entries = dataEntries.ToArray();
             }
 
             return entity;
@@ -75,51 +87,71 @@ namespace BFInitfsEditor.Data
             var str = new StringBuilder();
             while (data[position] != 0x00)
                 str.Append((char)data[position++]);
-            ++position;
+            ++position; // skip end of string
             return str.ToString();
         }
 
-        private bool _ReadBlocks(byte[] data, ref int position)
+        private FileEntry _ReadEntry(byte[] data, ref int position)
         {
-            var maybeContentSize = _leb128.ReadLEB128Unsigned(data, ref position);
-            position += 2; // skip two unknown bytes
-            var typeName = _ReadString(data, ref position);
-            var structSize = _leb128.ReadLEB128Unsigned(data, ref position);
+            if (data[position] == 0) return null;
 
-            string ts, ts1, fname = string.Empty;
+            var entry = new FileEntry();
+            var localPosition = 0;
+
+            // read unknown data
+            entry.UnknownSize = _leb128.ReadLEB128Unsigned(data, ref position);
+            // read unknown header part
+            entry.UnknownHeaderPart = new[] { data[position++], data[position++] };
+            // read entry type name
+            entry.Type = _ReadString(data, ref position);
+            // read struct size
+            entry.StructSize = _leb128.ReadLEB128Unsigned(data, ref position);
+            
+            // fix local position
+            localPosition = position;
+
+            // read file entry
             while (data[position] != 0)
             {
-                var sType = data[position++];
-                ts = _ReadString(data, ref position);
+                // read next data type and name
+                var dataType = data[position++];
+                var dataName = _ReadString(data, ref position);
 
-                switch (sType)
+                switch (dataType)
                 {
-                    case InitfsConstants.TYPE_STRING: //string
-                        _leb128.ReadLEB128Unsigned(data, ref position); //skip string size
-                        ts1 = _ReadString(data, ref position);
+                    case InitfsConstants.TYPE_STRING:
+                    
+                        // read string data size
+                        entry.FilePathSize = _leb128.ReadLEB128Unsigned(data, ref position);
+                        // read file path
+                        entry.FilePath = _ReadString(data, ref position);
 
-                        if (ts == "name")
-                        {
-                            fname = "Z_" + ts1;
-                            fname = fname.Replace('/', '-');
-                        }
                         break;
-                    case InitfsConstants.TYPE_PAYLOAD: //payload
-                    {
-                        var tsize = _leb128.ReadLEB128Unsigned(data, ref position);
-                        using (var file = File.Create(fname))
-                        {
-                            file.Write(data, position, (int) tsize);
-                        }
-                        position += (int) tsize;
+                    case InitfsConstants.TYPE_PAYLOAD:
+
+                        var readDataSize = position - localPosition;
+                        // read data block for initfs_ write
+                        entry.UnknownData = new byte[readDataSize];
+                        Array.Copy(data, (long) localPosition, entry.UnknownData, 0, readDataSize);
+
+                        // read file size
+                        entry.FileSize = _leb128.ReadLEB128Unsigned(data, ref position);
+                        // read file content
+                        entry.FileData = new byte[entry.FileSize];
+                        Array.Copy(data, (long) position, entry.FileData, 0, (int) entry.FileSize);
+
+                        // move position
+                        position += (int) entry.FileSize;
+
                         break;
-                    }
-                    default:
-                        return false;
+                    default: break;
                 }
             }
-            position += 2; //end zeros
-            return true;
+
+            // move position => skip 2 zeros
+            position += 2;
+
+            return entry;
         }
 
         #endregion
