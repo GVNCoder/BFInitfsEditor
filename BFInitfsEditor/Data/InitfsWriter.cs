@@ -37,7 +37,7 @@ namespace BFInitfsEditor.Data
                 var dataSize = _leb128.BuildLEB128Unsigned(entityData.DataSize);
                 dataBlock.Write(dataSize, 0, dataSize.Length);
 
-                // handle all file entires
+                // handle all file entries
                 foreach (var entry in entityData.Entries)
                 {
                     byte[] entryBytes = null;
