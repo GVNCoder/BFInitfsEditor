@@ -67,6 +67,7 @@
     <Compile Include="Data\InitfsWriter.cs" />
     <Compile Include="Data\Leb128.cs" />
     <Compile Include="Data\XOR.cs" />
+    <Compile Include="Extension\ArrayExtension.cs" />
     <Compile Include="Extension\BinaryReaderExtension.cs" />
     <Compile Include="Model\Data.cs" />
     <Compile Include="Model\Entity.cs" />
