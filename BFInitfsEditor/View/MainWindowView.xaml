@@ -2,6 +2,7 @@
     x:Class="BFInitfsEditor.View.MainWindowView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:BFInitfsEditor.View"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -38,7 +39,16 @@
         <!--  Define files view  -->
         <TreeView Grid.Row="1" Grid.Column="0" />
         <!--  Define file content view  -->
-        <!--  TODO: Use Avalon TextEditor  -->
+        <avalonEdit:TextEditor
+            Name="UITextEditor"
+            Grid.Row="1"
+            Grid.Column="1"
+            Padding="3"
+            FontFamily="Consolas"
+            FontSize="10pt"
+            HorizontalScrollBarVisibility="Auto"
+            SyntaxHighlighting="C#"
+            VerticalScrollBarVisibility="Auto" />
 
         <!--  Define status bar  -->
         <StatusBar
