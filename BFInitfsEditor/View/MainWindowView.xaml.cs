@@ -17,16 +17,16 @@ namespace BFInitfsEditor.View
             InitializeComponent();
 
             // Tests
-            var fileContent = File.ReadAllBytes("initfs_Linux");
-            var reader = InitfsReader.GetInstance();
-            var writer = InitfsWriter.GetInstance();
+            //var fileContent = File.ReadAllBytes("initfs_Linux");
+            //var reader = InitfsReader.GetInstance();
+            //var writer = InitfsWriter.GetInstance();
 
-            Entity entity = null;
-            using (var memoryStream = new MemoryStream(fileContent, false))
-                entity = reader.Read(memoryStream);
+            //Entity entity = null;
+            //using (var memoryStream = new MemoryStream(fileContent, false))
+            //    entity = reader.Read(memoryStream);
 
-            using (var file = File.OpenWrite("initfs_Linux_new"))
-                writer.Write(file, entity);
+            //using (var file = File.OpenWrite("initfs_Linux_new"))
+            //    writer.Write(file, entity);
         }
     }
 }
