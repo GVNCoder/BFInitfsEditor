@@ -19,8 +19,8 @@ namespace BFInitfsEditor.Data
 
         private readonly IXOR _xor;
         private readonly ILeb128 _leb128;
-        private static readonly byte[] DICE_HEADER1 = new byte[] { 0x00, 0xD1, 0xCE, 0x00 };
-        private static readonly byte[] DICE_HEADER2 = new byte[] { 0x00, 0xD1, 0xCE, 0x01 };
+        private static readonly byte[] DICE_HEADER1 = { 0x00, 0xD1, 0xCE, 0x00 };
+        private static readonly byte[] DICE_HEADER2 = { 0x00, 0xD1, 0xCE, 0x01 };
         private const int DICE_HEADER_SIZE = 4;
 
         // private ctor 
@@ -102,7 +102,7 @@ namespace BFInitfsEditor.Data
             // end of data reached
             if (data[position] == 0) return null;
 
-            var entry = new FileEntry();
+            var entry = new FileEntry { ID = position };
             var localPosition = 0;
 
             // read unknown data

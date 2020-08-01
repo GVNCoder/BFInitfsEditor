@@ -9,6 +9,7 @@
     Title="BF Initfs_ file editor [BF3]"
     Width="800"
     Height="450"
+    Loaded="_WndLoadedHandler"
     WindowStartupLocation="CenterScreen"
     mc:Ignorable="d">
 
@@ -25,14 +26,18 @@
 
         <!--  Define menu  -->
         <Menu
+            Name="UIMenu"
             Grid.Row="0"
             Grid.Column="0"
             Grid.ColumnSpan="2">
             <MenuItem Header="File">
-                <MenuItem Header="Open" />
-                <MenuItem Header="Save" />
+                <MenuItem Click="_OpenMenuClickHandler" Header="Open" />
+                <MenuItem Click="_SaveMenuClickHandler" Header="Save" />
             </MenuItem>
-            <MenuItem Header="About" IsEnabled="False" />
+            <MenuItem
+                Click="_AboutMenuClickHandler"
+                Header="About"
+                IsEnabled="False" />
         </Menu>
 
         <!--  Define Content  -->
@@ -52,6 +57,7 @@
 
         <!--  Define status bar  -->
         <StatusBar
+            Name="UIStatusBar"
             Grid.Row="2"
             Grid.Column="0"
             Grid.ColumnSpan="2">

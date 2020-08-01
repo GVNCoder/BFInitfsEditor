@@ -66,6 +66,7 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Data\DialogHelper.cs" />
     <Compile Include="Data\InitfsConstants.cs" />
     <Compile Include="Data\InitfsReader.cs" />
     <Compile Include="Data\InitfsWriter.cs" />
@@ -117,6 +118,8 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="ViewModels\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
