@@ -1,6 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+
 using BFInitfsEditor.Service;
+
+// set short alias
+using CONST = BFInitfsEditor.Data.InitfsConstants;
 
 namespace BFInitfsEditor.Data
 {
@@ -10,6 +14,8 @@ namespace BFInitfsEditor.Data
 
         // private ctor
         private XOR() { }
+
+        private const int MAGIC_XOR = 0x7B;
 
         #region IXOR
 
@@ -26,9 +32,7 @@ namespace BFInitfsEditor.Data
             Array.Copy(data, result, data.Length);
 
             for (var i = 0; i < data.Length; i++)
-            {
-                result[i] ^= (byte)(key[i % 257] ^ 0x7B);
-            }
+                result[i] ^= (byte)(key[i % CONST.MAGIC_SIZE] ^ MAGIC_XOR);
 
             return result;
         }

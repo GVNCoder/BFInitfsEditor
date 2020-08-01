@@ -1,11 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 using BFInitfsEditor.Extension;
 using BFInitfsEditor.Model;
 using BFInitfsEditor.Service;
+
+// set short alias
+using CONST = BFInitfsEditor.Data.InitfsConstants;
 
 namespace BFInitfsEditor.Data
 {
@@ -15,6 +19,9 @@ namespace BFInitfsEditor.Data
 
         private readonly IXOR _xor;
         private readonly ILeb128 _leb128;
+        private static readonly byte[] DICE_HEADER1 = new byte[] { 0x00, 0xD1, 0xCE, 0x00 };
+        private static readonly byte[] DICE_HEADER2 = new byte[] { 0x00, 0xD1, 0xCE, 0x01 };
+        private const int DICE_HEADER_SIZE = 4;
 
         // private ctor 
         private InitfsReader()
@@ -33,19 +40,21 @@ namespace BFInitfsEditor.Data
             using (var reader = new BinaryReader(source))
             {
                 // read DICE header
-                entity.Header = reader.ReadBytes(4);
-                reader.Seek(4, SeekOrigin.Current); // skip 4 zero bytes
+                entity.Header = reader.ReadBytes(DICE_HEADER_SIZE);
+                reader.Seek(CONST.POST_HEADER_SPACE, SeekOrigin.Current); // skip zero bytes
 
-                // read initfs_ hash 'x' + hash + 'x'
-                entity.Hash = reader.ReadBytes(InitfsConstants.HASH_SIZE + 2);
-                reader.Seek(30, SeekOrigin.Current); // skip 30 zero bytes
+                if (! _ValidateHeader(entity.Header)) throw new InvalidOperationException("file header was not recognized.");
+
+                // read hash 'x' + hash + 'x'
+                entity.Hash = reader.ReadBytes(CONST.FULL_HASH_SIZE);
+                reader.Seek(CONST.POST_HASH_SPACE, SeekOrigin.Current); // skip zero bytes
 
                 // read XOR key
-                entity.EncryptionKey = _ReadKey(reader);
-                reader.Seek(3, SeekOrigin.Current); // skip 3 zero bytes
+                entity.EncryptionKey = reader.ReadBytes(CONST.MAGIC_SIZE);
+                reader.Seek(CONST.POST_MAGIC_SPACE, SeekOrigin.Current); // skip zero bytes
 
                 // decrypt data
-                var encryptedData = _ReadData(reader);
+                var encryptedData = reader.ReadAllBytes();
                 var decryptedData = _xor.Decrypt(encryptedData, entity.EncryptionKey);
 
                 // parse payload
@@ -55,6 +64,7 @@ namespace BFInitfsEditor.Data
                 // read unknown data
                 data.DataSize = _leb128.ReadLEB128Unsigned(decryptedData, ref position);
 
+                // read all file entries
                 while (position < decryptedData.Length)
                 {
                     var entry = _ReadEntry(decryptedData, ref position);
@@ -73,12 +83,8 @@ namespace BFInitfsEditor.Data
 
         #region Private helpers
 
-        private bool _ValidateHeader(int header) =>
-            InitfsConstants.DICE_HEADER_TYPE1 == header || InitfsConstants.DICE_HEADER_TYPE2 == header;
-
-        private static byte[] _ReadKey(BinaryReader reader) => reader.ReadBytes(InitfsConstants.MAGIC_SIZE);
-
-        private static byte[] _ReadData(BinaryReader reader) => reader.ReadAllBytes();
+        private bool _ValidateHeader(IReadOnlyList<byte> header) =>
+            header.SequenceEqual(DICE_HEADER1) || header.SequenceEqual(DICE_HEADER2);
 
         private static string _ReadString(IReadOnlyList<byte> data, ref int position)
         {
@@ -93,6 +99,7 @@ namespace BFInitfsEditor.Data
 
         private FileEntry _ReadEntry(byte[] data, ref int position)
         {
+            // end of data reached
             if (data[position] == 0) return null;
 
             var entry = new FileEntry();
@@ -119,7 +126,7 @@ namespace BFInitfsEditor.Data
 
                 switch (dataType)
                 {
-                    case InitfsConstants.TYPE_STRING:
+                    case CONST.TYPE_STRING:
                     
                         // read string data size
                         entry.FilePathSize = _leb128.ReadLEB128Unsigned(data, ref position);
@@ -127,7 +134,7 @@ namespace BFInitfsEditor.Data
                         entry.FilePath = _ReadString(data, ref position);
 
                         break;
-                    case InitfsConstants.TYPE_PAYLOAD:
+                    case CONST.TYPE_PAYLOAD:
 
                         var readDataSize = position - localPosition;
                         // read data block for initfs_ write
@@ -148,8 +155,8 @@ namespace BFInitfsEditor.Data
                 }
             }
 
-            // move position => skip 2 zeros
-            position += 2;
+            // move position
+            position += CONST.ENTRY_EOF_SIZE;
 
             return entry;
         }

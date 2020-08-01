@@ -6,6 +6,9 @@ using BFInitfsEditor.Extension;
 using BFInitfsEditor.Model;
 using BFInitfsEditor.Service;
 
+// set short alias
+using CONST = BFInitfsEditor.Data.InitfsConstants;
+
 namespace BFInitfsEditor.Data
 {
     public class InitfsWriter : IInitfsWriter
@@ -16,6 +19,7 @@ namespace BFInitfsEditor.Data
         private readonly ILeb128 _leb128;
         private readonly byte[] _eof = { 0x00, 0x00 };
         private readonly byte[] _zeros = new byte[30];
+        private readonly byte[] _eop = { 0x00 }; // end of payload
 
         // private ctor 
         private InitfsWriter()
@@ -37,15 +41,15 @@ namespace BFInitfsEditor.Data
             {
                 // write header + 4 zero bytes
                 dataStream.Write(entity.Header, 0, entity.Header.Length);
-                dataStream.Write(_zeros, 0, Entity.AfterHeaderZero);
+                dataStream.Write(_zeros, 0, CONST.POST_HEADER_SPACE);
 
                 // write hash + 30 zero bytes
                 dataStream.Write(entity.Hash, 0, entity.Hash.Length);
-                dataStream.Write(_zeros, 0, Entity.AfterHashZero);
+                dataStream.Write(_zeros, 0, CONST.POST_HASH_SPACE);
 
                 // write encryption key + 3 zero bytes
                 dataStream.Write(entity.EncryptionKey, 0, entity.EncryptionKey.Length);
-                dataStream.Write(_zeros, 0, Entity.AfterEncryptionKeyZero);
+                dataStream.Write(_zeros, 0, CONST.POST_MAGIC_SPACE);
                 
                 byte[] entriesStreamData = null;
 
@@ -64,7 +68,7 @@ namespace BFInitfsEditor.Data
                         entriesStream.Write(entry.UnknownHeaderPart, 0, entry.UnknownHeaderPart.Length);
 
                         // write type name string
-                        var typeString = Encoding.ASCII.GetBytes(entry.Type).Concat(new byte[] { 0x00 }).ToArray();
+                        var typeString = _GetStringBytes(entry.Type);
                         entriesStream.Write(typeString, 0, typeString.Length);
 
                         // write entry struct size + entry header
@@ -79,7 +83,7 @@ namespace BFInitfsEditor.Data
                         entriesStream.Write(_eof, 0, _eof.Length);
                     }
 
-                    entriesStream.Write(new byte[] { 0x00 }, 0, 1);
+                    entriesStream.Write(_eop, 0, _eop.Length);
 
                     // extract recorded data
                     entriesStreamData = entriesStream.ToArray();
@@ -104,7 +108,8 @@ namespace BFInitfsEditor.Data
 
         #region Private helpers
 
-        
+        private static byte[] _GetStringBytes(string source)
+            => Encoding.ASCII.GetBytes(source).Concat(new byte[] { 0x00 }).ToArray();
 
         #endregion
     }

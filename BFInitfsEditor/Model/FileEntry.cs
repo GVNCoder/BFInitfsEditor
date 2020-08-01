@@ -2,9 +2,6 @@
 {
     public class FileEntry
     {
-        public const int AfterFileZero = 2;
-        public const int AfterEveryStringZero = 1;
-
         public ulong UnknownSize { get; set; } // leb128
         public byte[] UnknownHeaderPart { get; set; } // 2 bytes
 

@@ -2,10 +2,6 @@
 {
     public class Entity
     {
-        public const int AfterHeaderZero = 4;
-        public const int AfterHashZero = 30;
-        public const int AfterEncryptionKeyZero = 3;
-
         public byte[] Header { get; set; }
 
         // 4 byte zero
