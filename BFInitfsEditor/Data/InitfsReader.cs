@@ -83,7 +83,7 @@ namespace BFInitfsEditor.Data
 
         #region Private helpers
 
-        private bool _ValidateHeader(IReadOnlyList<byte> header) =>
+        private static bool _ValidateHeader(IReadOnlyList<byte> header) =>
             header.SequenceEqual(DICE_HEADER1) || header.SequenceEqual(DICE_HEADER2);
 
         private static string _ReadString(IReadOnlyList<byte> data, ref int position)

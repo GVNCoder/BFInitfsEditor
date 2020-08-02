@@ -158,8 +158,6 @@ namespace BFInitfsEditor.View
         /// <summary>
         /// "About" menu click handler
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         private void _AboutMenuClickHandler(object sender, RoutedEventArgs e)
         {
             // TODO: Handle click
