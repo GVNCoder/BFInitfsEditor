@@ -57,7 +57,7 @@
                     Name="UISaveAsItem"
                     Click="_SaveMenuClickHandler"
                     Header="SaveAs"
-                    InputGestureText="Shift+Control+S" />
+                    InputGestureText="Shift+Ctrl+S" />
             </MenuItem>
             <MenuItem
                 Click="_AboutMenuClickHandler"
@@ -89,7 +89,17 @@
             HorizontalScrollBarVisibility="Auto"
             IsEnabled="False"
             SyntaxHighlighting="C#"
-            VerticalScrollBarVisibility="Auto" />
+            VerticalScrollBarVisibility="Auto">
+            <avalonEdit:TextEditor.CommandBindings>
+                <CommandBinding Command="{x:Static shortcuts:ShortcutCommands.QuickSaveCommand}" Executed="_QuickSaveCommandExecuted" />
+            </avalonEdit:TextEditor.CommandBindings>
+            <avalonEdit:TextEditor.InputBindings>
+                <KeyBinding
+                    Key="S"
+                    Command="{x:Static shortcuts:ShortcutCommands.QuickSaveCommand}"
+                    Modifiers="Control" />
+            </avalonEdit:TextEditor.InputBindings>
+        </avalonEdit:TextEditor>
 
         <!--  Define status bar  -->
         <StatusBar
@@ -98,7 +108,19 @@
             Grid.Column="0"
             Grid.ColumnSpan="2">
             <StatusBarItem>
-                <TextBlock Text="Some useful data here" />
+                <TextBlock Text="v0.0.0" />
+            </StatusBarItem>
+            <StatusBarItem>
+                <TextBlock Text="Edit: " />
+            </StatusBarItem>
+            <StatusBarItem>
+                <TextBlock Text="Size control: " />
+            </StatusBarItem>
+            <StatusBarItem>
+                <TextBlock Text="Selected: " />
+            </StatusBarItem>
+            <StatusBarItem HorizontalAlignment="Right">
+                <TextBlock Text="X_V" />
             </StatusBarItem>
         </StatusBar>
     </Grid>

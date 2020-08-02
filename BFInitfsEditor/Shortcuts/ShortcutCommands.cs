@@ -7,5 +7,8 @@ namespace BFInitfsEditor.Shortcuts
         // Window shortcuts
         public static readonly RoutedUICommand OpenFileCommand = new RoutedUICommand();
         public static readonly RoutedUICommand SaveAsCommand = new RoutedUICommand();
+
+        // TextEditor shortcuts
+        public static readonly RoutedUICommand QuickSaveCommand = new RoutedUICommand();
     }
 }

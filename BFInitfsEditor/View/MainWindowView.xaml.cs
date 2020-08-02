@@ -4,8 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Windows;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Windows.Controls;
 using System.Windows.Input;
+
+using BFInitfsEditor.Annotations;
 using BFInitfsEditor.Data;
 using BFInitfsEditor.Model;
 using BFInitfsEditor.Service;
@@ -17,7 +21,7 @@ namespace BFInitfsEditor.View
     /// <summary>
     /// Interaction logic for MainWindowView.xaml
     /// </summary>
-    public partial class MainWindowView : Window
+    public partial class MainWindowView : Window, INotifyPropertyChanged
     {
         public MainWindowView()
         {
@@ -46,6 +50,26 @@ namespace BFInitfsEditor.View
 
         #endregion
 
+        #region INotifyPropertyChanged impl
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        [NotifyPropertyChangedInvocator]
+        protected virtual void _OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        private void _SetProperty<T>(ref T storage, T value, [CallerMemberName] string propertyName = null)
+        {
+            if (storage.Equals(value)) return;
+
+            storage = value;
+            _OnPropertyChanged(propertyName);
+        }
+
+        #endregion
+
         #region Shortcut commands redirections
 
         private void _OpenFileCommandExecuted(object sender, ExecutedRoutedEventArgs e)
@@ -53,6 +77,9 @@ namespace BFInitfsEditor.View
 
         private void _SaveAsCommandExecuted(object sender, ExecutedRoutedEventArgs e)
             => UISaveAsItem.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+
+        private void _QuickSaveCommandExecuted(object sender, ExecutedRoutedEventArgs e)
+            => _QuickSaveHandler();
 
         #endregion
 
@@ -75,8 +102,6 @@ namespace BFInitfsEditor.View
         /// </summary>
         private void _OpenMenuClickHandler(object sender, RoutedEventArgs e)
         {
-            // TODO: Add support of Ctrl + O quick save
-
             var dialogResult = DialogHelper.OpenFileDialog("Select initfs_ file", "All (*.*)|*.*");
 
             // results validation
@@ -215,7 +240,21 @@ namespace BFInitfsEditor.View
 
         #region TextEditor Handlers
 
+        /// <summary>
+        /// TextEditor QuickSave shortcut Handler
+        /// </summary>
+        private void _QuickSaveHandler()
+        {
+            var item = (EntryViewModel) UITreeView.SelectedItem;
+            var isEdited = UITextEditor.IsModified;
 
+            if (isEdited)
+            {
+                _SaveEntry(item.Entry, UITextEditor.Text);
+            }
+
+            UITextEditor.IsModified = false;
+        }
 
         #endregion
 

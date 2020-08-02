@@ -77,6 +77,7 @@
     <Compile Include="Model\Data.cs" />
     <Compile Include="Model\Entity.cs" />
     <Compile Include="Model\FileEntry.cs" />
+    <Compile Include="Properties\Annotations.cs" />
     <Compile Include="Service\IInitfsReader.cs" />
     <Compile Include="Service\IInitfsWriter.cs" />
     <Compile Include="Service\ILeb128.cs" />
