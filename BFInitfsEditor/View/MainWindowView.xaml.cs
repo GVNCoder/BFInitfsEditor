@@ -28,6 +28,9 @@ namespace BFInitfsEditor.View
             // create some services
             _writer = InitfsWriter.GetInstance();
             _reader = InitfsReader.GetInstance();
+
+            // setup some initial values
+            _isFileLoaded = false;
         }
 
         #region Fields
@@ -37,6 +40,8 @@ namespace BFInitfsEditor.View
 
         private Entity _entity;
         private IEnumerable<EntryViewModel> _itemsSource;
+
+        private bool _isFileLoaded;
 
         #endregion
 
@@ -59,6 +64,8 @@ namespace BFInitfsEditor.View
         /// </summary>
         private void _OpenMenuClickHandler(object sender, RoutedEventArgs e)
         {
+            // TODO: Add support of Ctrl + O quick save
+
             var dialogResult = DialogHelper.OpenFileDialog("Select initfs_ file", "All (*.*)|*.*");
 
             // results validation
@@ -67,7 +74,7 @@ namespace BFInitfsEditor.View
             var fileExtension = Path.GetExtension(dialogResult.FileName);
             if (! string.IsNullOrEmpty(dialogResult.FileName) && string.IsNullOrEmpty(fileExtension))
             {
-                _HandleFile(dialogResult.FileName);
+                _HandleOpenFile(dialogResult.FileName);
             }
             else // if file is not specified or invalid file specified
             {
@@ -76,7 +83,7 @@ namespace BFInitfsEditor.View
             }
         }
 
-        private void _HandleFile(string path)
+        private void _HandleOpenFile(string path)
         {
             try
             {
@@ -85,6 +92,8 @@ namespace BFInitfsEditor.View
                 _itemsSource = _entity.Data.Entries.Select(e => new EntryViewModel { ID = e.ID, FullPath = e.FilePath, Entry = e });
 
                 UITreeView.ItemsSource = _itemsSource;
+
+                _isFileLoaded = true;
 
                 // TODO: Create normal treeView
             }
@@ -110,10 +119,40 @@ namespace BFInitfsEditor.View
         /// </summary>
         private void _SaveMenuClickHandler(object sender, RoutedEventArgs e)
         {
-            // TODO: Create Ctrl + S quick save
+            // TODO: Add support of Ctrl + S quick save (only for text editor, not for initfs_ file)
 
-            //using (var file = File.OpenWrite("initfs_Linux_new"))
-            //    writer.Write(file, entity);
+            // if not file to save
+            if (! _isFileLoaded) return;
+
+            var dialogResult = DialogHelper.SaveFileDialog("Save file", "All (*.*)|*.*");
+
+            // results validation
+            if (dialogResult.IsClosed) return;
+
+            var fileExtension = Path.GetExtension(dialogResult.FileName);
+            if (!string.IsNullOrEmpty(dialogResult.FileName) && string.IsNullOrEmpty(fileExtension))
+            {
+                _HandleSaveFile(dialogResult.FileName);
+            }
+            else // if file is not specified or invalid file specified
+            {
+                MessageBox.Show("File is not specified or invalid file specified", "Error",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void _HandleSaveFile(string path)
+        {
+            try
+            {
+                // write result initfs_ to selected file
+                using (var file = File.OpenWrite(path))
+                    _writer.Write(file, _entity);
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         /// <summary>

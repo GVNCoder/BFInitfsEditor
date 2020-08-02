@@ -36,5 +36,29 @@ namespace BFInitfsEditor.Data
 
             return dialogResult;
         }
+
+        public static DialogResult SaveFileDialog(string title, string filter)
+        {
+            // create dialog instance
+            var dialogInstance = new SaveFileDialog
+            {
+                Title = title,
+                Filter = filter,
+                FileName = string.Empty,
+                AddExtension = false
+            };
+
+            // show dialog and wait return
+            var workResult = dialogInstance.ShowDialog();
+            // create dialog result
+            var dialogResult = new DialogResult
+            {
+                DialogResultRef = workResult,
+                IsClosed = !workResult.GetValueOrDefault(),
+                FileName = dialogInstance.FileName
+            };
+
+            return dialogResult;
+        }
     }
 }
