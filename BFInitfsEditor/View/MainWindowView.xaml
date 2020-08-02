@@ -6,6 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:BFInitfsEditor.View"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:shortcuts="clr-namespace:BFInitfsEditor.Shortcuts"
     xmlns:viewModels="clr-namespace:BFInitfsEditor.ViewModels"
     Title="BF Initfs_ file editor [BF3]"
     Width="800"
@@ -13,6 +14,21 @@
     Loaded="_WndLoadedHandler"
     WindowStartupLocation="CenterScreen"
     mc:Ignorable="d">
+
+    <Window.CommandBindings>
+        <CommandBinding Command="{x:Static shortcuts:ShortcutCommands.OpenFileCommand}" Executed="_OpenFileCommandExecuted" />
+        <CommandBinding Command="{x:Static shortcuts:ShortcutCommands.SaveAsCommand}" Executed="_SaveAsCommandExecuted" />
+    </Window.CommandBindings>
+    <Window.InputBindings>
+        <KeyBinding
+            Key="O"
+            Command="{x:Static shortcuts:ShortcutCommands.OpenFileCommand}"
+            Modifiers="Control" />
+        <KeyBinding
+            Key="S"
+            Command="{x:Static shortcuts:ShortcutCommands.SaveAsCommand}"
+            Modifiers="Shift+Control" />
+    </Window.InputBindings>
 
     <Grid>
         <Grid.RowDefinitions>
@@ -32,8 +48,16 @@
             Grid.Column="0"
             Grid.ColumnSpan="2">
             <MenuItem Header="File">
-                <MenuItem Click="_OpenMenuClickHandler" Header="Open" />
-                <MenuItem Click="_SaveMenuClickHandler" Header="Save" />
+                <MenuItem
+                    Name="UIOpenFileItem"
+                    Click="_OpenMenuClickHandler"
+                    Header="Open"
+                    InputGestureText="Ctrl+O" />
+                <MenuItem
+                    Name="UISaveAsItem"
+                    Click="_SaveMenuClickHandler"
+                    Header="SaveAs"
+                    InputGestureText="Shift+Control+S" />
             </MenuItem>
             <MenuItem
                 Click="_AboutMenuClickHandler"

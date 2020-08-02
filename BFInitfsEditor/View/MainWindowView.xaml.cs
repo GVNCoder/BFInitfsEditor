@@ -4,7 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Windows;
 using System.Collections.Generic;
-
+using System.Windows.Controls;
+using System.Windows.Input;
 using BFInitfsEditor.Data;
 using BFInitfsEditor.Model;
 using BFInitfsEditor.Service;
@@ -42,6 +43,16 @@ namespace BFInitfsEditor.View
         private IEnumerable<EntryViewModel> _itemsSource;
 
         private bool _isFileLoaded;
+
+        #endregion
+
+        #region Shortcut commands redirections
+
+        private void _OpenFileCommandExecuted(object sender, ExecutedRoutedEventArgs e)
+            => UIOpenFileItem.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+
+        private void _SaveAsCommandExecuted(object sender, ExecutedRoutedEventArgs e)
+            => UISaveAsItem.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
 
         #endregion
 
@@ -221,7 +232,7 @@ namespace BFInitfsEditor.View
             if (sizeDifference < 0)
             {
                 entry.StructSize -= (ulong) Math.Abs(sizeDifference);
-                entry.FileSize -= (ulong)Math.Abs(sizeDifference);
+                entry.FileSize -= (ulong) Math.Abs(sizeDifference);
             }
             else
             {
