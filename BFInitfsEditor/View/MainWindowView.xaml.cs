@@ -1,10 +1,15 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Text;
 using System.Windows;
 
 using BFInitfsEditor.Data;
 using BFInitfsEditor.Model;
 using BFInitfsEditor.Service;
+using BFInitfsEditor.ViewModels;
+using ICSharpCode.AvalonEdit.Document;
 
 namespace BFInitfsEditor.View
 {
@@ -31,6 +36,7 @@ namespace BFInitfsEditor.View
         private readonly IInitfsReader _reader;
 
         private Entity _entity;
+        private IEnumerable<EntryViewModel> _itemsSource;
 
         #endregion
 
@@ -73,9 +79,11 @@ namespace BFInitfsEditor.View
             {
                 // parse entity
                 _entity = _ReadEntity(path);
+                _itemsSource = _entity.Data.Entries.Select(e => new EntryViewModel { ID = e.ID, FullPath = e.FilePath, Entry = e });
 
-                // TODO: Create entries view models source here
-                // TODO: and bind it to treeView
+                UITreeView.ItemsSource = _itemsSource;
+
+                // TODO: Create normal treeView
             }
             catch (Exception e)
             {
@@ -99,7 +107,7 @@ namespace BFInitfsEditor.View
         /// </summary>
         private void _SaveMenuClickHandler(object sender, RoutedEventArgs e)
         {
-            // TODO: Handle click
+            // TODO: Create Ctrl + S quick save
         }
 
         /// <summary>
@@ -113,5 +121,16 @@ namespace BFInitfsEditor.View
         }
 
         #endregion
+
+        private void _TreeViewSelectionChangedHandler(object sender, RoutedPropertyChangedEventArgs<object> e)
+        {
+            // TODO: Ask to save it if changes was detected
+
+            var item = (EntryViewModel) e.NewValue;
+            var documentString = Encoding.ASCII.GetString(item.Entry.FileData);
+            var document = new TextDocument(documentString);
+
+            UITextEditor.Document = document;
+        }
     }
 }

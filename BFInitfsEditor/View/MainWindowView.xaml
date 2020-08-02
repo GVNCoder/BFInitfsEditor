@@ -6,6 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:BFInitfsEditor.View"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:viewModels="clr-namespace:BFInitfsEditor.ViewModels"
     Title="BF Initfs_ file editor [BF3]"
     Width="800"
     Height="450"
@@ -20,7 +21,7 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="200" />
+            <ColumnDefinition Width="300" />
             <ColumnDefinition />
         </Grid.ColumnDefinitions>
 
@@ -42,7 +43,17 @@
 
         <!--  Define Content  -->
         <!--  Define files view  -->
-        <TreeView Grid.Row="1" Grid.Column="0" />
+        <TreeView
+            Name="UITreeView"
+            Grid.Row="1"
+            Grid.Column="0"
+            SelectedItemChanged="_TreeViewSelectionChangedHandler">
+            <TreeView.ItemTemplate>
+                <DataTemplate DataType="viewModels:EntryViewModel">
+                    <TextBlock Text="{Binding FullPath}" />
+                </DataTemplate>
+            </TreeView.ItemTemplate>
+        </TreeView>
         <!--  Define file content view  -->
         <avalonEdit:TextEditor
             Name="UITextEditor"
