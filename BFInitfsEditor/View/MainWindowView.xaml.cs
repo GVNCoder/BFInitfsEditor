@@ -1,15 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Windows;
+using System.Collections.Generic;
 
 using BFInitfsEditor.Data;
 using BFInitfsEditor.Model;
 using BFInitfsEditor.Service;
 using BFInitfsEditor.ViewModels;
-using ICSharpCode.AvalonEdit.Document;
 
 namespace BFInitfsEditor.View
 {
@@ -23,9 +22,10 @@ namespace BFInitfsEditor.View
         {
             InitializeComponent();
 
-            //using (var file = File.OpenWrite("initfs_Linux_new"))
-            //    writer.Write(file, entity);
+            // setup some settings
+            UITextEditor.Encoding = Encoding.ASCII;
 
+            // create some services
             _writer = InitfsWriter.GetInstance();
             _reader = InitfsReader.GetInstance();
         }
@@ -42,6 +42,9 @@ namespace BFInitfsEditor.View
 
         #region Wnd Handlers
 
+        /// <summary>
+        /// Window loaded Handler
+        /// </summary>
         private void _WndLoadedHandler(object sender, RoutedEventArgs e)
         {
             // TODO: Load resources
@@ -108,6 +111,9 @@ namespace BFInitfsEditor.View
         private void _SaveMenuClickHandler(object sender, RoutedEventArgs e)
         {
             // TODO: Create Ctrl + S quick save
+
+            //using (var file = File.OpenWrite("initfs_Linux_new"))
+            //    writer.Write(file, entity);
         }
 
         /// <summary>
@@ -122,15 +128,71 @@ namespace BFInitfsEditor.View
 
         #endregion
 
+        #region TreeView Handlers
+
+        /// <summary>
+        /// TreeView Selection changed Handler
+        /// </summary>
         private void _TreeViewSelectionChangedHandler(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
-            // TODO: Ask to save it if changes was detected
+            var oldItem = (EntryViewModel) e.OldValue;
+            var newItem = (EntryViewModel) e.NewValue;
+            var isEdited = UITextEditor.IsModified;
 
-            var item = (EntryViewModel) e.NewValue;
-            var documentString = Encoding.ASCII.GetString(item.Entry.FileData);
-            var document = new TextDocument(documentString);
+            // ask to save edited file
+            if (isEdited)
+            {
+                var dialogResult = MessageBox.Show($"The file \"{oldItem.FullPath}\" has been modified, save it?",
+                    "Save", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
 
-            UITextEditor.Document = document;
+                if (dialogResult == MessageBoxResult.Yes)
+                {
+                    _SaveEntry(oldItem.Entry, UITextEditor.Text);
+                }
+            }
+
+            _LoadEntryFileToTextEditor(newItem.Entry);
+
+            UITextEditor.IsEnabled = true;
+            UITextEditor.IsModified = false;
         }
+
+        private void _LoadEntryFileToTextEditor(FileEntry entry)
+        {
+            var document = Encoding.ASCII.GetString(entry.FileData);
+            UITextEditor.Text = document;
+        }
+
+        #endregion
+
+        #region TextEditor Handlers
+
+
+
+        #endregion
+
+        #region Shared helpers
+
+        public void _SaveEntry(FileEntry entry, string newContent)
+        {
+            var bytes = Encoding.ASCII.GetBytes(newContent);
+            var sizeDifference = bytes.Length - (long) entry.FileSize;
+
+            // save new data content
+            entry.FileData = bytes;
+            // fix size difference
+            if (sizeDifference < 0)
+            {
+                entry.StructSize -= (ulong) Math.Abs(sizeDifference);
+                entry.FileSize -= (ulong)Math.Abs(sizeDifference);
+            }
+            else
+            {
+                entry.StructSize += (ulong) sizeDifference;
+                entry.FileSize += (ulong) sizeDifference;
+            }
+        }
+
+        #endregion
     }
 }

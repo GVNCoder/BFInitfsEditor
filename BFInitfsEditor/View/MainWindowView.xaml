@@ -63,6 +63,7 @@
             FontFamily="Consolas"
             FontSize="10pt"
             HorizontalScrollBarVisibility="Auto"
+            IsEnabled="False"
             SyntaxHighlighting="C#"
             VerticalScrollBarVisibility="Auto" />
 
