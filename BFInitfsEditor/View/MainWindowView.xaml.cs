@@ -15,6 +15,8 @@ using BFInitfsEditor.Model;
 using BFInitfsEditor.Service;
 using BFInitfsEditor.ViewModels;
 
+using ICSharpCode.AvalonEdit.Editing;
+
 namespace BFInitfsEditor.View
 {
     /// <inheritdoc cref="Window" />
@@ -29,6 +31,7 @@ namespace BFInitfsEditor.View
 
             // setup some settings
             UITextEditor.Encoding = Encoding.ASCII;
+            UITextEditor.TextArea.SelectionChanged += _TextEditorSelectionChangedHandler;
 
             // create some services
             _writer = InitfsWriter.GetInstance();
@@ -37,6 +40,11 @@ namespace BFInitfsEditor.View
             // setup some initial values
             _isFileLoaded = false;
             _isEdited = false;
+
+            // setup changeable props
+            _storageSelected = 0;
+            _storageSizeControl = 0;
+            _storageEdit = string.Empty;
         }
 
         #region Fields
@@ -69,6 +77,42 @@ namespace BFInitfsEditor.View
             storage = value;
             _OnPropertyChanged(propertyName);
         }
+
+        #endregion
+
+        #region Changeble props
+
+        private int _storageSelected;
+        private int _storageSizeControl;
+        private string _storageEdit;
+
+        /// <summary>
+        /// Selected chars in current document
+        /// </summary>
+        public int Selected
+        {
+            get => _storageSelected;
+            set => _SetProperty(ref _storageSelected, value);
+        }
+
+        /// <summary>
+        /// Difference between untouched entry and modified entry
+        /// </summary>
+        public int SizeControl
+        {
+            get => _storageSizeControl;
+            set => _SetProperty(ref _storageSizeControl, value);
+        }
+
+        /// <summary>
+        /// Current document full name
+        /// </summary>
+        public string Edit
+        {
+            get => _storageEdit;
+            set => _SetProperty(ref _storageEdit, value);
+        }
+
 
         #endregion
 
@@ -250,6 +294,8 @@ namespace BFInitfsEditor.View
 
             UITextEditor.IsEnabled = true;
             UITextEditor.IsModified = false;
+
+            Edit = newItem.FullPath;
         }
 
         private void _LoadEntryFileToTextEditor(FileEntry entry)
@@ -277,6 +323,15 @@ namespace BFInitfsEditor.View
             }
 
             UITextEditor.IsModified = false;
+        }
+
+        /// <summary>
+        /// TextEditor Selection changed Handler
+        /// </summary>
+        private void _TextEditorSelectionChangedHandler(object sender, EventArgs e)
+        {
+            var textArea = (TextArea) sender;
+            Selected = textArea.Selection.Length;
         }
 
         #endregion

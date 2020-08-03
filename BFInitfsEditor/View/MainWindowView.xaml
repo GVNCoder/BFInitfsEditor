@@ -112,13 +112,22 @@
                 <TextBlock Text="v0.0.0" />
             </StatusBarItem>
             <StatusBarItem>
-                <TextBlock Text="Edit: " />
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Edit: " />
+                    <TextBlock Text="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Window}, Path=Edit}" />
+                </StackPanel>
             </StatusBarItem>
             <StatusBarItem>
-                <TextBlock Text="Size control: " />
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Size control: " />
+                    <TextBlock Text="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Window}, Path=SizeControl}" />
+                </StackPanel>
             </StatusBarItem>
             <StatusBarItem>
-                <TextBlock Text="Selected: " />
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Selected: " />
+                    <TextBlock Text="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Window}, Path=Selected}" />
+                </StackPanel>
             </StatusBarItem>
             <StatusBarItem HorizontalAlignment="Right">
                 <TextBlock Text="X_V" />
