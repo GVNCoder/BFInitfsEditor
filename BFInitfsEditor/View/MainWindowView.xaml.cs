@@ -36,6 +36,7 @@ namespace BFInitfsEditor.View
 
             // setup some initial values
             _isFileLoaded = false;
+            _isEdited = false;
         }
 
         #region Fields
@@ -47,6 +48,7 @@ namespace BFInitfsEditor.View
         private IEnumerable<EntryViewModel> _itemsSource;
 
         private bool _isFileLoaded;
+        private bool _isEdited;
 
         #endregion
 
@@ -91,6 +93,26 @@ namespace BFInitfsEditor.View
         private void _WndLoadedHandler(object sender, RoutedEventArgs e)
         {
             // TODO: Load resources
+        }
+
+        /// <summary>
+        /// Window closing Handler
+        /// </summary>
+        private void _WndClosingHandler(object sender, CancelEventArgs e)
+        {
+            // if we have not saved changes
+            if (_isEdited)
+            {
+                var dialogResult = MessageBox.Show("The file has been modified. Save it?", "Initfs Editor",
+                    MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No);
+                if (dialogResult == MessageBoxResult.Yes)
+                {
+                    // call to menu handler
+                    _SaveMenuClickHandler(sender, null);
+                }
+            }
+
+            e.Cancel = false;
         }
 
         #endregion
@@ -155,8 +177,6 @@ namespace BFInitfsEditor.View
         /// </summary>
         private void _SaveMenuClickHandler(object sender, RoutedEventArgs e)
         {
-            // TODO: Add support of Ctrl + S quick save (only for text editor, not for initfs_ file)
-
             // if not file to save
             if (! _isFileLoaded) return;
 
@@ -169,6 +189,7 @@ namespace BFInitfsEditor.View
             if (!string.IsNullOrEmpty(dialogResult.FileName) && string.IsNullOrEmpty(fileExtension))
             {
                 _HandleSaveFile(dialogResult.FileName);
+                _isEdited = false;
             }
             else // if file is not specified or invalid file specified
             {
@@ -221,6 +242,7 @@ namespace BFInitfsEditor.View
                 if (dialogResult == MessageBoxResult.Yes)
                 {
                     _SaveEntry(oldItem.Entry, UITextEditor.Text);
+                    _isEdited = true;
                 }
             }
 
@@ -251,6 +273,7 @@ namespace BFInitfsEditor.View
             if (isEdited)
             {
                 _SaveEntry(item.Entry, UITextEditor.Text);
+                _isEdited = true;
             }
 
             UITextEditor.IsModified = false;

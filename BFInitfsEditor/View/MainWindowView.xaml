@@ -11,6 +11,7 @@
     Title="BF Initfs_ file editor [BF3]"
     Width="800"
     Height="450"
+    Closing="_WndClosingHandler"
     Loaded="_WndLoadedHandler"
     WindowStartupLocation="CenterScreen"
     mc:Ignorable="d">
