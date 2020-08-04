@@ -127,7 +127,7 @@
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="25" />
+                            <ColumnDefinition Width="140" />
                         </Grid.ColumnDefinitions>
                     </Grid>
                 </ItemsPanelTemplate>
@@ -135,7 +135,7 @@
 
             <!--  Version  -->
             <StatusBarItem Grid.Column="0">
-                <TextBlock Text="v0.0.0" />
+                <TextBlock Text="v1.0.0" />
             </StatusBarItem>
             <Separator Grid.Column="1" />
 
@@ -157,7 +157,7 @@
 
             <!--  Author  -->
             <StatusBarItem Grid.Column="8" HorizontalAlignment="Right">
-                <TextBlock Text="X_V" />
+                <TextBlock Text="X_V | ZLOFENIX | Aim4Kill" />
             </StatusBarItem>
         </StatusBar>
     </Grid>
