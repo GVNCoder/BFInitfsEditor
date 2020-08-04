@@ -66,6 +66,7 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Converter\SizeControlValue2StringConverter.cs" />
     <Compile Include="Data\DialogHelper.cs" />
     <Compile Include="Data\InitfsConstants.cs" />
     <Compile Include="Data\InitfsReader.cs" />

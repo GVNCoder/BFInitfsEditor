@@ -15,6 +15,7 @@ using BFInitfsEditor.Model;
 using BFInitfsEditor.Service;
 using BFInitfsEditor.ViewModels;
 
+using ICSharpCode.AvalonEdit.Document;
 using ICSharpCode.AvalonEdit.Editing;
 
 namespace BFInitfsEditor.View
@@ -57,6 +58,9 @@ namespace BFInitfsEditor.View
 
         private bool _isFileLoaded;
         private bool _isEdited;
+
+        private ulong _currentEditEntrySize;
+        private ulong _currentEditEntryOriginalSize;
 
         #endregion
 
@@ -291,6 +295,8 @@ namespace BFInitfsEditor.View
             }
 
             _LoadEntryFileToTextEditor(newItem.Entry);
+            _currentEditEntrySize = newItem.Entry.FileSize;
+            _currentEditEntryOriginalSize = _currentEditEntrySize;
 
             UITextEditor.IsEnabled = true;
             UITextEditor.IsModified = false;
@@ -300,8 +306,26 @@ namespace BFInitfsEditor.View
 
         private void _LoadEntryFileToTextEditor(FileEntry entry)
         {
-            var document = Encoding.ASCII.GetString(entry.FileData);
-            UITextEditor.Text = document;
+            // unsubscribe changes tracker from old document
+            var oldDocument = UITextEditor.Document;
+            if (oldDocument != null)
+            {
+                oldDocument.Changing -= _TextEditorDocumentChangedHandler;
+            }
+
+            // create new document
+            var textContent = Encoding.ASCII.GetString(entry.FileData);
+            var document = _CreateDocumentFromString(textContent);
+
+            UITextEditor.Document = document;
+        }
+
+        private TextDocument _CreateDocumentFromString(string content)
+        {
+            var document = new TextDocument(content);
+            document.Changing += _TextEditorDocumentChangedHandler;
+
+            return document;
         }
 
         #endregion
@@ -332,6 +356,19 @@ namespace BFInitfsEditor.View
         {
             var textArea = (TextArea) sender;
             Selected = textArea.Selection.Length;
+        }
+
+        /// <summary>
+        /// TextEditor document changes Handler
+        /// </summary>
+        private void _TextEditorDocumentChangedHandler(object sender, DocumentChangeEventArgs e)
+        {
+            // calculate changes size
+            _currentEditEntrySize -= (ulong) e.RemovalLength;
+            _currentEditEntrySize += (ulong) e.InsertionLength;
+
+            // calculate difference
+            SizeControl = (int)(_currentEditEntryOriginalSize - _currentEditEntrySize);
         }
 
         #endregion
