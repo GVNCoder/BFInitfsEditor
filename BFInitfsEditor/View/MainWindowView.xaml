@@ -3,6 +3,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit"
+    xmlns:controls="clr-namespace:BFInitfsEditor.Controls"
     xmlns:converter="clr-namespace:BFInitfsEditor.Converter"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:BFInitfsEditor.View"
@@ -73,17 +74,18 @@
 
         <!--  Define Content  -->
         <!--  Define files view  -->
-        <TreeView
-            Name="UITreeView"
+        <controls:CancelableTreeView
+            x:Name="UITreeView"
             Grid.Row="1"
             Grid.Column="0"
+            PreviewSelectedItemChanged="_TreeViewPreviewSelectionChangedHandler"
             SelectedItemChanged="_TreeViewSelectionChangedHandler">
             <TreeView.ItemTemplate>
                 <DataTemplate DataType="viewModels:EntryViewModel">
                     <TextBlock Text="{Binding FullPath}" />
                 </DataTemplate>
             </TreeView.ItemTemplate>
-        </TreeView>
+        </controls:CancelableTreeView>
         <!--  Define file content view  -->
         <avalonEdit:TextEditor
             Name="UITextEditor"

@@ -273,6 +273,28 @@ namespace BFInitfsEditor.View
         #region TreeView Handlers
 
         /// <summary>
+        /// TreeView Preview selection changed Handler
+        /// </summary>
+        private void _TreeViewPreviewSelectionChangedHandler(object sender, CancelEventArgs e)
+        {
+            var difference = _currentEditEntryOriginalSize - _currentEditEntrySize;
+            if (difference != 0)
+            {
+                // show error
+                MessageBox.Show("Edited entry size doesn't match with original entry", "Size error",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+
+                // cancel selection
+                e.Cancel = true;
+            }
+            else
+            {
+                // allow selection changed event
+                e.Cancel = false;
+            }
+        }
+
+        /// <summary>
         /// TreeView Selection changed Handler
         /// </summary>
         private void _TreeViewSelectionChangedHandler(object sender, RoutedPropertyChangedEventArgs<object> e)
