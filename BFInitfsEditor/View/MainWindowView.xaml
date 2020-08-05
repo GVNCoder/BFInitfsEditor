@@ -137,7 +137,7 @@
 
             <!--  Version  -->
             <StatusBarItem Grid.Column="0">
-                <TextBlock Text="v1.0.0" />
+                <TextBlock Text="v1.1.0" />
             </StatusBarItem>
             <Separator Grid.Column="1" />
 
