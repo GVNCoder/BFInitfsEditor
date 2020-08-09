@@ -32,9 +32,9 @@ namespace BFInitfsEditor.Data
 
         #region IInitfsReader
 
-        public Entity Read(Stream source)
+        public Entity ReadEncrypted(Stream source)
         {
-            var entity = new Entity();
+            var entity = new Entity { IsEncrypted = true };
             var data = entity.Data;
 
             using (var reader = new BinaryReader(source))
@@ -61,6 +61,38 @@ namespace BFInitfsEditor.Data
                 var position = 0;
                 var dataEntries = new List<FileEntry>();
                 
+                // read unknown data
+                data.DataSize = _leb128.ReadLEB128Unsigned(decryptedData, ref position);
+
+                // read all file entries
+                while (position < decryptedData.Length)
+                {
+                    var entry = _ReadEntry(decryptedData, ref position);
+                    if (entry == null) break;
+
+                    dataEntries.Add(entry);
+                }
+
+                data.Entries = dataEntries.ToArray();
+            }
+
+            return entity;
+        }
+
+        public Entity ReadDecrypted(Stream source)
+        {
+            var entity = new Entity { IsEncrypted = false };
+            var data = entity.Data;
+
+            using (var reader = new BinaryReader(source))
+            {
+                // read all file data
+                var decryptedData = reader.ReadAllBytes();
+
+                // parse payload
+                var position = 0;
+                var dataEntries = new List<FileEntry>();
+
                 // read unknown data
                 data.DataSize = _leb128.ReadLEB128Unsigned(decryptedData, ref position);
 

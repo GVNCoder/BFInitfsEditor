@@ -183,44 +183,13 @@ namespace BFInitfsEditor.View
             var fileExtension = Path.GetExtension(dialogResult.FileName);
             if (! string.IsNullOrEmpty(dialogResult.FileName) && string.IsNullOrEmpty(fileExtension))
             {
-                _HandleOpenFile(dialogResult.FileName);
+                _HandleOpenFile(dialogResult.FileName, true);
             }
             else // if file is not specified or invalid file specified
             {
                 MessageBox.Show("File is not specified or invalid file specified", "Error",
                     MessageBoxButton.OK, MessageBoxImage.Error);
             }
-        }
-
-        private void _HandleOpenFile(string path)
-        {
-            try
-            {
-                // parse entity
-                _entity = _ReadEntity(path);
-                _itemsSource = _entity.Data.Entries.Select(e => new EntryViewModel { ID = e.ID, FullPath = e.FilePath, Entry = e });
-
-                UITreeView.ItemsSource = _itemsSource;
-
-                _isFileLoaded = true;
-
-                // TODO: Create normal treeView
-            }
-            catch (Exception e)
-            {
-                MessageBox.Show(e.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-
-        private Entity _ReadEntity(string path)
-        {
-            var fileContent = File.ReadAllBytes(path);
-
-            Entity entity;
-            using (var memoryStream = new MemoryStream(fileContent, false))
-                entity = _reader.Read(memoryStream);
-
-            return entity;
         }
 
         /// <summary>
@@ -236,13 +205,44 @@ namespace BFInitfsEditor.View
             var fileExtension = Path.GetExtension(dialogResult.FileName);
             if (! string.IsNullOrEmpty(dialogResult.FileName) && string.IsNullOrEmpty(fileExtension))
             {
-                // TODO: Handle file here
+                _HandleOpenFile(dialogResult.FileName, false);
             }
             else // if file is not specified or invalid file specified
             {
                 MessageBox.Show("File is not specified or invalid file specified", "Error",
                     MessageBoxButton.OK, MessageBoxImage.Error);
             }
+        }
+
+        private void _HandleOpenFile(string path, bool isEncrypted)
+        {
+            try
+            {
+                // parse entity
+                _entity = _ReadEntity(path, isEncrypted);
+                _itemsSource = _entity.Data.Entries.Select(e => new EntryViewModel { ID = e.ID, FullPath = e.FilePath, Entry = e });
+
+                UITreeView.ItemsSource = _itemsSource;
+
+                _isFileLoaded = true;
+
+                // TODO: Create normal treeView
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private Entity _ReadEntity(string path, bool isEncrypted)
+        {
+            var fileContent = File.ReadAllBytes(path);
+
+            Entity entity;
+            using (var memoryStream = new MemoryStream(fileContent, false))
+                entity = isEncrypted ? _reader.ReadEncrypted(memoryStream) : _reader.ReadDecrypted(memoryStream);
+
+            return entity;
         }
 
         /// <summary>

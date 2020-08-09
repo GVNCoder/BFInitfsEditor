@@ -1,11 +1,11 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using BFInitfsEditor.Model;
 
 namespace BFInitfsEditor.Service
 {
     public interface IInitfsReader
     {
-        Entity Read(Stream source);
+        Entity ReadEncrypted(Stream source);
+        Entity ReadDecrypted(Stream source);
     }
 }
