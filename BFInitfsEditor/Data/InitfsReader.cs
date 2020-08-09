@@ -43,7 +43,7 @@ namespace BFInitfsEditor.Data
                 entity.Header = reader.ReadBytes(DICE_HEADER_SIZE);
                 reader.Seek(CONST.POST_HEADER_SPACE, SeekOrigin.Current); // skip zero bytes
 
-                if (! _ValidateHeader(entity.Header)) throw new InvalidOperationException("file header was not recognized.");
+                if (! _ValidateHeader(entity.Header)) throw new InvalidOperationException("File header was not recognized.");
 
                 // read hash 'x' + hash + 'x'
                 entity.Hash = reader.ReadBytes(CONST.FULL_HASH_SIZE);

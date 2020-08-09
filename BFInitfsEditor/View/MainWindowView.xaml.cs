@@ -125,6 +125,9 @@ namespace BFInitfsEditor.View
         private void _OpenFileCommandExecuted(object sender, ExecutedRoutedEventArgs e)
             => UIOpenFileItem.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
 
+        private void _OpenDecryptedFileCommandExecuted(object sender, ExecutedRoutedEventArgs e)
+            => UIOpenDecryptedItem.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+
         private void _SaveAsCommandExecuted(object sender, ExecutedRoutedEventArgs e)
             => UISaveAsItem.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
 
@@ -218,6 +221,28 @@ namespace BFInitfsEditor.View
                 entity = _reader.Read(memoryStream);
 
             return entity;
+        }
+
+        /// <summary>
+        /// "Open decrypted" menu click handler
+        /// </summary>
+        private void _OpenDecryptedMenuClickHandler(object sender, RoutedEventArgs e)
+        {
+            var dialogResult = DialogHelper.OpenFileDialog("Select decrypted initfs_ file", "All (*.*)|*.*");
+
+            // results validation
+            if (dialogResult.IsClosed) return;
+
+            var fileExtension = Path.GetExtension(dialogResult.FileName);
+            if (! string.IsNullOrEmpty(dialogResult.FileName) && string.IsNullOrEmpty(fileExtension))
+            {
+                // TODO: Handle file here
+            }
+            else // if file is not specified or invalid file specified
+            {
+                MessageBox.Show("File is not specified or invalid file specified", "Error",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         /// <summary>
