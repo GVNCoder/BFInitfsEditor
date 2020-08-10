@@ -96,6 +96,9 @@ namespace BFInitfsEditor.Data
                 // read unknown data
                 data.DataSize = _leb128.ReadLEB128Unsigned(decryptedData, ref position);
 
+                // check is this file is really decrypted
+                if (data.DataSize == 0) throw new InvalidOperationException("An error occurred while reading the file. Perhaps it is encrypted.");
+
                 // read all file entries
                 while (position < decryptedData.Length)
                 {

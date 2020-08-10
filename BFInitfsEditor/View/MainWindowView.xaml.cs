@@ -54,7 +54,7 @@ namespace BFInitfsEditor.View
         private readonly IInitfsReader _reader;
 
         private Entity _entity;
-        private IEnumerable<EntryViewModel> _itemsSource;
+        private IEnumerable<EntryNodeViewModel> _itemsSource;
 
         private bool _isFileLoaded;
         private bool _isEdited;
@@ -219,18 +219,55 @@ namespace BFInitfsEditor.View
             {
                 // parse entity
                 _entity = _ReadEntity(path, isEncrypted);
-                _itemsSource = _entity.Data.Entries.Select(e => new EntryViewModel { ID = e.ID, FullPath = e.FilePath, Entry = e });
 
-                UITreeView.ItemsSource = _itemsSource;
-
+                // build file tree structure
+                _itemsSource = _GetNodes(_entity.Data.Entries.ToDictionary(e => e.FilePath.Split('/')));
                 _isFileLoaded = true;
 
-                // TODO: Create normal treeView
+                // bind treeView to items source
+                UITreeView.ItemsSource = _itemsSource;
             }
             catch (Exception e)
             {
                 MessageBox.Show(e.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+        }
+
+        private static EntryNodeViewModel[] _GetNodes(IDictionary<string[], FileEntry> data, int depthIndex = 0)
+        {
+            // group nodes
+            var nodesGroup = data
+                .GroupBy(e => e.Key[depthIndex]);
+            
+            // select nodes
+            var nodes = nodesGroup
+                .Select(group => _SelectNode(group, depthIndex));
+
+            return nodes.ToArray(); // execute query
+        }
+
+        private static EntryNodeViewModel _SelectNode(IGrouping<string, KeyValuePair<string[], FileEntry>> group, int depthIndex)
+        {
+            var node = new EntryNodeViewModel { Name = group.Key };
+            var groupSize = group.Count();
+
+            // check is file
+            var firstGroupItem = group.First();
+            if (groupSize == 1 && firstGroupItem.Key.Last() == group.Key)
+            {
+                var entry = firstGroupItem.Value;
+
+                node.Type = EntryNodeType.File;
+                node.Entry = entry;
+                node.FullPath = entry.FilePath;
+            }
+            else // if folder
+            {
+                node.Type = EntryNodeType.Folder;
+                node.Nodes = _GetNodes(group.ToDictionary(k => k.Key, v => v.Value), depthIndex + 1); // recursive call
+            }
+
+            return node;
         }
 
         private Entity _ReadEntity(string path, bool isEncrypted)
@@ -323,8 +360,8 @@ namespace BFInitfsEditor.View
         /// </summary>
         private void _TreeViewSelectionChangedHandler(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
-            var oldItem = (EntryViewModel) e.OldValue;
-            var newItem = (EntryViewModel) e.NewValue;
+            var oldItem = (EntryNodeViewModel) e.OldValue;
+            var newItem = (EntryNodeViewModel) e.NewValue;
             var isEdited = UITextEditor.IsModified;
 
             // ask to save edited file
@@ -339,6 +376,9 @@ namespace BFInitfsEditor.View
                     _isEdited = true;
                 }
             }
+
+            // selected node is folder
+            if (newItem.Type == EntryNodeType.Folder) return;
 
             _LoadEntryFileToTextEditor(newItem.Entry);
             _currentEditEntrySize = newItem.Entry.FileSize;
@@ -383,7 +423,7 @@ namespace BFInitfsEditor.View
         /// </summary>
         private void _QuickSaveHandler()
         {
-            var item = (EntryViewModel) UITreeView.SelectedItem;
+            var item = (EntryNodeViewModel) UITreeView.SelectedItem;
             var isEdited = UITextEditor.IsModified;
 
             if (isEdited)

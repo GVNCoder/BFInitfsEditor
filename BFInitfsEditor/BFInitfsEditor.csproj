@@ -103,8 +103,8 @@
     <Compile Include="Service\ILeb128.cs" />
     <Compile Include="Service\IXOR.cs" />
     <Compile Include="Shortcuts\ShortcutCommands.cs" />
-    <Compile Include="ViewModels\EntryType.cs" />
-    <Compile Include="ViewModels\EntryViewModel.cs" />
+    <Compile Include="ViewModels\EntryNodeType.cs" />
+    <Compile Include="ViewModels\EntryNodeViewModel.cs" />
     <Compile Include="View\MainWindowView.xaml.cs">
       <DependentUpon>MainWindowView.xaml</DependentUpon>
     </Compile>
