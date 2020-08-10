@@ -117,7 +117,6 @@ namespace BFInitfsEditor.View
             set => _SetProperty(ref _storageEdit, value);
         }
 
-
         #endregion
 
         #region Shortcut commands redirections

@@ -29,30 +29,22 @@ namespace BFInitfsEditor.Controls
         // give CLR access to routed event
         public event CancelEventHandler PreviewSelectedItemChanged
         {
-            add
-            {
-                AddHandler(PreviewSelectedItemChangedEvent, value);
-            }
-            remove
-            {
-                RemoveHandler(PreviewSelectedItemChangedEvent, value);
-            }
+            add => AddHandler(PreviewSelectedItemChangedEvent, value);
+            remove => RemoveHandler(PreviewSelectedItemChangedEvent, value);
         }
 
         // override PreviewMouseDown
         protected override void OnPreviewMouseDown(MouseButtonEventArgs e)
         {
             // determine which item is going to be selected based on the current mouse position
-            object itemToBeSelected = this.GetObjectAtPoint<TreeViewItem>(e.GetPosition(this));
+            var itemToBeSelected = this.GetObjectAtPoint<TreeViewItem>(e.GetPosition(this));
 
             // selection doesn't change if the target point is null (beyond the end of the list)
             // or if the item to be selected is already selected.
             if (itemToBeSelected != null && itemToBeSelected != SelectedItem)
             {
-                bool shouldCancel;
-
                 // call our new event
-                OnPreviewSelectedItemChanged(out shouldCancel);
+                OnPreviewSelectedItemChanged(out var shouldCancel);
                 if (shouldCancel)
                 {
                     // if we are canceling the selection, mark this event has handled and don't
@@ -68,7 +60,7 @@ namespace BFInitfsEditor.Controls
 
         protected virtual void OnPreviewSelectedItemChanged(out bool shouldCancel)
         {
-            CancelEventArgs e = new CancelEventArgs();
+            var e = new CancelEventArgs();
             if (PreviewSelectedItemChangedEvent != null)
             {
                 // Raise our event with our custom CancelRoutedEventArgs
