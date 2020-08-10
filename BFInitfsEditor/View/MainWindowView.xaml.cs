@@ -54,7 +54,7 @@ namespace BFInitfsEditor.View
         private readonly IInitfsReader _reader;
 
         private Entity _entity;
-        private IEnumerable<EntryViewModel> _itemsSource;
+        private IEnumerable<EntryNodeViewModel> _itemsSource;
 
         private bool _isFileLoaded;
         private bool _isEdited;
@@ -219,18 +219,65 @@ namespace BFInitfsEditor.View
             {
                 // parse entity
                 _entity = _ReadEntity(path, isEncrypted);
-                _itemsSource = _entity.Data.Entries.Select(e => new EntryViewModel { ID = e.ID, FullPath = e.FilePath, Entry = e });
-
-                UITreeView.ItemsSource = _itemsSource;
-
+                _itemsSource = _GetNodes(_entity.Data.Entries.ToDictionary(e => e.FilePath.Split('/')));
                 _isFileLoaded = true;
 
-                // TODO: Create normal treeView
+                UITreeView.ItemsSource = _itemsSource;
             }
             catch (Exception e)
             {
                 MessageBox.Show(e.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+        }
+
+        private static EntryNodeViewModel[] _GetNodes(IDictionary<string[], FileEntry> data, int rootIndex = 0)
+        {
+            // group nodes
+            var nodesGroup = data
+                .Where(item => rootIndex < item.Key.Length)
+                .GroupBy(e => e.Key[rootIndex]);
+            
+            // select nodes
+            var nodes = nodesGroup
+                .Select(i =>
+                {
+                    var node = new EntryNodeViewModel();
+                    if (i.Count() == 1) // this is file
+                    {
+                        var groupKey = i.First().Key;
+                        //if (groupKey.Length - rootIndex != 1 || groupKey.Length != 1)  goto point;
+                        if (groupKey.Last() != i.Key) goto point;
+
+                        var entry = i.First().Value;
+                        node.Type = EntryNodeType.File;
+                        node.Entry = entry;
+                        node.FullPath = entry.FilePath;
+                        node.Name = i.Key;
+
+                        return node;
+                    }
+
+                    point:
+
+                    node.Name = i.Key;
+                    node.Type = EntryNodeType.Folder;
+                    node.Nodes = _GetNodes(i.ToDictionary(n => n.Key, v => v.Value), rootIndex + 1);
+
+                    return node;
+                })
+                .ToArray();
+
+            ++rootIndex;
+
+            // whats next ?
+            return nodes.Length == 0 ? null : nodes;
+        }
+
+        private static EntryNodeType _GetNodeType(IReadOnlyCollection<string> roots, int index)
+        {
+            return index == roots.Count - 1
+                ? EntryNodeType.File
+                : EntryNodeType.Folder;
         }
 
         private Entity _ReadEntity(string path, bool isEncrypted)
@@ -323,8 +370,8 @@ namespace BFInitfsEditor.View
         /// </summary>
         private void _TreeViewSelectionChangedHandler(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
-            var oldItem = (EntryViewModel) e.OldValue;
-            var newItem = (EntryViewModel) e.NewValue;
+            var oldItem = (EntryNodeViewModel) e.OldValue;
+            var newItem = (EntryNodeViewModel) e.NewValue;
             var isEdited = UITextEditor.IsModified;
 
             // ask to save edited file
@@ -339,6 +386,9 @@ namespace BFInitfsEditor.View
                     _isEdited = true;
                 }
             }
+
+            // selected node is folder
+            if (newItem.Type == EntryNodeType.Folder) return;
 
             _LoadEntryFileToTextEditor(newItem.Entry);
             _currentEditEntrySize = newItem.Entry.FileSize;
@@ -383,7 +433,7 @@ namespace BFInitfsEditor.View
         /// </summary>
         private void _QuickSaveHandler()
         {
-            var item = (EntryViewModel) UITreeView.SelectedItem;
+            var item = (EntryNodeViewModel) UITreeView.SelectedItem;
             var isEdited = UITextEditor.IsModified;
 
             if (isEdited)
