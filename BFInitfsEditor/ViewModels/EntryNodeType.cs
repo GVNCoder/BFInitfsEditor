@@ -1,6 +1,6 @@
 ﻿namespace BFInitfsEditor.ViewModels
 {
-    public enum EntryType
+    public enum EntryNodeType
     {
         Folder,
         File

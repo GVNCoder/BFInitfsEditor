@@ -73,7 +73,7 @@
                 <MenuItem
                     Name="UISaveAsItem"
                     Click="_SaveMenuClickHandler"
-                    Header="SaveAs"
+                    Header="Save As"
                     InputGestureText="Shift+Ctrl+S" />
             </MenuItem>
             <MenuItem
@@ -91,9 +91,9 @@
             PreviewSelectedItemChanged="_TreeViewPreviewSelectionChangedHandler"
             SelectedItemChanged="_TreeViewSelectionChangedHandler">
             <TreeView.ItemTemplate>
-                <DataTemplate DataType="viewModels:EntryViewModel">
-                    <TextBlock Text="{Binding FullPath}" />
-                </DataTemplate>
+                <HierarchicalDataTemplate DataType="{x:Type viewModels:EntryNodeViewModel}" ItemsSource="{Binding Nodes}">
+                    <TextBlock Text="{Binding Name}" />
+                </HierarchicalDataTemplate>
             </TreeView.ItemTemplate>
         </controls:CancelableTreeView>
         <!--  Define file content view  -->

@@ -2,15 +2,14 @@
 
 namespace BFInitfsEditor.ViewModels
 {
-    public class EntryViewModel
+    public class EntryNodeViewModel
     {
-        public int ID { get; set; }
-        public EntryType Type { get; set; }
+        public EntryNodeType Type { get; set; }
         public string FullPath { get; set; }
         public string Name { get; set; }
 
         public FileEntry Entry { get; set; }
 
-        public EntryViewModel[] SubEntries { get; set; }
+        public EntryNodeViewModel[] Nodes { get; set; }
     }
 }
