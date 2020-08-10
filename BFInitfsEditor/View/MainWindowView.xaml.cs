@@ -219,9 +219,12 @@ namespace BFInitfsEditor.View
             {
                 // parse entity
                 _entity = _ReadEntity(path, isEncrypted);
+
+                // build file tree structure
                 _itemsSource = _GetNodes(_entity.Data.Entries.ToDictionary(e => e.FilePath.Split('/')));
                 _isFileLoaded = true;
 
+                // bind treeView to items source
                 UITreeView.ItemsSource = _itemsSource;
             }
             catch (Exception e)
@@ -230,54 +233,41 @@ namespace BFInitfsEditor.View
             }
         }
 
-        private static EntryNodeViewModel[] _GetNodes(IDictionary<string[], FileEntry> data, int rootIndex = 0)
+        private static EntryNodeViewModel[] _GetNodes(IDictionary<string[], FileEntry> data, int depthIndex = 0)
         {
             // group nodes
             var nodesGroup = data
-                .Where(item => rootIndex < item.Key.Length)
-                .GroupBy(e => e.Key[rootIndex]);
+                .GroupBy(e => e.Key[depthIndex]);
             
             // select nodes
             var nodes = nodesGroup
-                .Select(i =>
-                {
-                    var node = new EntryNodeViewModel();
-                    if (i.Count() == 1) // this is file
-                    {
-                        var groupKey = i.First().Key;
-                        //if (groupKey.Length - rootIndex != 1 || groupKey.Length != 1)  goto point;
-                        if (groupKey.Last() != i.Key) goto point;
+                .Select(group => _SelectNode(group, depthIndex));
 
-                        var entry = i.First().Value;
-                        node.Type = EntryNodeType.File;
-                        node.Entry = entry;
-                        node.FullPath = entry.FilePath;
-                        node.Name = i.Key;
-
-                        return node;
-                    }
-
-                    point:
-
-                    node.Name = i.Key;
-                    node.Type = EntryNodeType.Folder;
-                    node.Nodes = _GetNodes(i.ToDictionary(n => n.Key, v => v.Value), rootIndex + 1);
-
-                    return node;
-                })
-                .ToArray();
-
-            ++rootIndex;
-
-            // whats next ?
-            return nodes.Length == 0 ? null : nodes;
+            return nodes.ToArray(); // execute query
         }
 
-        private static EntryNodeType _GetNodeType(IReadOnlyCollection<string> roots, int index)
+        private static EntryNodeViewModel _SelectNode(IGrouping<string, KeyValuePair<string[], FileEntry>> group, int depthIndex)
         {
-            return index == roots.Count - 1
-                ? EntryNodeType.File
-                : EntryNodeType.Folder;
+            var node = new EntryNodeViewModel { Name = group.Key };
+            var groupSize = group.Count();
+
+            // check is file
+            var firstGroupItem = group.First();
+            if (groupSize == 1 && firstGroupItem.Key.Last() == group.Key)
+            {
+                var entry = firstGroupItem.Value;
+
+                node.Type = EntryNodeType.File;
+                node.Entry = entry;
+                node.FullPath = entry.FilePath;
+            }
+            else // if folder
+            {
+                node.Type = EntryNodeType.Folder;
+                node.Nodes = _GetNodes(group.ToDictionary(k => k.Key, v => v.Value), depthIndex + 1); // recursive call
+            }
+
+            return node;
         }
 
         private Entity _ReadEntity(string path, bool isEncrypted)

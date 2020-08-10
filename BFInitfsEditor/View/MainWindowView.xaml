@@ -73,7 +73,7 @@
                 <MenuItem
                     Name="UISaveAsItem"
                     Click="_SaveMenuClickHandler"
-                    Header="SaveAs"
+                    Header="Save As"
                     InputGestureText="Shift+Ctrl+S" />
             </MenuItem>
             <MenuItem
