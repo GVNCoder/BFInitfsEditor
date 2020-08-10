@@ -117,13 +117,15 @@ namespace BFInitfsEditor.View
             set => _SetProperty(ref _storageEdit, value);
         }
 
-
         #endregion
 
         #region Shortcut commands redirections
 
         private void _OpenFileCommandExecuted(object sender, ExecutedRoutedEventArgs e)
             => UIOpenFileItem.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+
+        private void _OpenDecryptedFileCommandExecuted(object sender, ExecutedRoutedEventArgs e)
+            => UIOpenDecryptedItem.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
 
         private void _SaveAsCommandExecuted(object sender, ExecutedRoutedEventArgs e)
             => UISaveAsItem.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
@@ -180,7 +182,7 @@ namespace BFInitfsEditor.View
             var fileExtension = Path.GetExtension(dialogResult.FileName);
             if (! string.IsNullOrEmpty(dialogResult.FileName) && string.IsNullOrEmpty(fileExtension))
             {
-                _HandleOpenFile(dialogResult.FileName);
+                _HandleOpenFile(dialogResult.FileName, true);
             }
             else // if file is not specified or invalid file specified
             {
@@ -189,12 +191,34 @@ namespace BFInitfsEditor.View
             }
         }
 
-        private void _HandleOpenFile(string path)
+        /// <summary>
+        /// "Open decrypted" menu click handler
+        /// </summary>
+        private void _OpenDecryptedMenuClickHandler(object sender, RoutedEventArgs e)
+        {
+            var dialogResult = DialogHelper.OpenFileDialog("Select decrypted initfs_ file", "All (*.*)|*.*");
+
+            // results validation
+            if (dialogResult.IsClosed) return;
+
+            var fileExtension = Path.GetExtension(dialogResult.FileName);
+            if (! string.IsNullOrEmpty(dialogResult.FileName) && string.IsNullOrEmpty(fileExtension))
+            {
+                _HandleOpenFile(dialogResult.FileName, false);
+            }
+            else // if file is not specified or invalid file specified
+            {
+                MessageBox.Show("File is not specified or invalid file specified", "Error",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void _HandleOpenFile(string path, bool isEncrypted)
         {
             try
             {
                 // parse entity
-                _entity = _ReadEntity(path);
+                _entity = _ReadEntity(path, isEncrypted);
                 _itemsSource = _entity.Data.Entries.Select(e => new EntryViewModel { ID = e.ID, FullPath = e.FilePath, Entry = e });
 
                 UITreeView.ItemsSource = _itemsSource;
@@ -209,13 +233,13 @@ namespace BFInitfsEditor.View
             }
         }
 
-        private Entity _ReadEntity(string path)
+        private Entity _ReadEntity(string path, bool isEncrypted)
         {
             var fileContent = File.ReadAllBytes(path);
 
             Entity entity;
             using (var memoryStream = new MemoryStream(fileContent, false))
-                entity = _reader.Read(memoryStream);
+                entity = isEncrypted ? _reader.ReadEncrypted(memoryStream) : _reader.ReadDecrypted(memoryStream);
 
             return entity;
         }

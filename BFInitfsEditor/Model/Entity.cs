@@ -2,6 +2,8 @@
 {
     public class Entity
     {
+        public bool IsEncrypted { get; set; }
+
         public byte[] Header { get; set; }
 
         // 4 byte zero

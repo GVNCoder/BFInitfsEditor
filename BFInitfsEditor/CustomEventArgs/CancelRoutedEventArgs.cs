@@ -18,17 +18,11 @@ namespace BFInitfsEditor.CustomEventArgs
         // not the normal RoutedEventArgs
         protected override void InvokeEventHandler(Delegate genericHandler, object genericTarget)
         {
-            CancelEventHandler handler = (CancelEventHandler)genericHandler;
+            var handler = (CancelEventHandler) genericHandler;
             handler(genericTarget, _CancelArgs);
         }
 
         // the result
-        public bool Cancel
-        {
-            get
-            {
-                return _CancelArgs.Cancel;
-            }
-        }
+        public bool Cancel => _CancelArgs.Cancel;
     }
 }

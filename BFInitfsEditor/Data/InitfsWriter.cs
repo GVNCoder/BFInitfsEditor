@@ -15,11 +15,12 @@ namespace BFInitfsEditor.Data
     {
         public static IInitfsWriter GetInstance() => new InitfsWriter();
 
+        private const int __EOF_SIZE = 2; // end of file
+        private const int __EOP_SIZE = 1; // end of payload
+
         private readonly IXOR _xor;
         private readonly ILeb128 _leb128;
-        private readonly byte[] _eof = { 0x00, 0x00 };
         private readonly byte[] _zeros = new byte[30];
-        private readonly byte[] _eop = { 0x00 }; // end of payload
 
         // private ctor 
         private InitfsWriter()
@@ -32,6 +33,19 @@ namespace BFInitfsEditor.Data
         #region IInitfsWriter
 
         public void Write(Stream target, Entity entity)
+        {
+            if (entity.IsEncrypted) _WriteEncrypted(target, entity);
+            else _WriteDecrypted(target, entity);
+        }
+
+        #endregion
+
+        #region Private helpers
+
+        private static byte[] _GetStringBytes(string source)
+            => Encoding.ASCII.GetBytes(source).Concat(new byte[] { 0x00 }).ToArray();
+
+        private void _WriteEncrypted(Stream target, Entity entity)
         {
             var entityDataRef = entity.Data;
             byte[] data = null;
@@ -50,7 +64,7 @@ namespace BFInitfsEditor.Data
                 // write encryption key + 3 zero bytes
                 dataStream.Write(entity.EncryptionKey, 0, entity.EncryptionKey.Length);
                 dataStream.Write(_zeros, 0, CONST.POST_MAGIC_SPACE);
-                
+
                 byte[] entriesStreamData = null;
 
                 // prepare file entries data
@@ -75,15 +89,15 @@ namespace BFInitfsEditor.Data
                         var structSize = _leb128.BuildLEB128Unsigned(entry.StructSize);
                         entriesStream.Write(structSize, 0, structSize.Length);
                         entriesStream.Write(entry.UnknownData, 0, entry.UnknownData.Length);
-                        
+
                         // write file size + file data + eof
                         var fileSize = _leb128.BuildLEB128Unsigned(entry.FileSize);
                         entriesStream.Write(fileSize, 0, fileSize.Length);
                         entriesStream.Write(entry.FileData, 0, entry.FileData.Length);
-                        entriesStream.Write(_eof, 0, _eof.Length);
+                        entriesStream.Write(_zeros, 0, __EOF_SIZE);
                     }
 
-                    entriesStream.Write(_eop, 0, _eop.Length);
+                    entriesStream.Write(_zeros, 0, __EOP_SIZE);
 
                     // extract recorded data
                     entriesStreamData = entriesStream.ToArray();
@@ -104,12 +118,65 @@ namespace BFInitfsEditor.Data
             }
         }
 
-        #endregion
+        private void _WriteDecrypted(Stream target, Entity entity)
+        {
+            var entityDataRef = entity.Data;
+            byte[] data = null;
 
-        #region Private helpers
+            // prepare output initfs_ file data
+            using (var dataStream = new MemoryStream())
+            {
+                byte[] entriesStreamData = null;
 
-        private static byte[] _GetStringBytes(string source)
-            => Encoding.ASCII.GetBytes(source).Concat(new byte[] { 0x00 }).ToArray();
+                // prepare file entries data
+                using (var entriesStream = new MemoryStream())
+                {
+                    // write full data size
+                    var dataSize = _leb128.BuildLEB128Unsigned(entityDataRef.DataSize);
+                    entriesStream.Write(dataSize, 0, dataSize.Length);
+
+                    foreach (var entry in entityDataRef.Entries)
+                    {
+                        // write unknown data
+                        var unknownSize = _leb128.BuildLEB128Unsigned(entry.UnknownSize);
+                        entriesStream.Write(unknownSize, 0, unknownSize.Length);
+                        entriesStream.Write(entry.UnknownHeaderPart, 0, entry.UnknownHeaderPart.Length);
+
+                        // write type name string
+                        var typeString = _GetStringBytes(entry.Type);
+                        entriesStream.Write(typeString, 0, typeString.Length);
+
+                        // write entry struct size + entry header
+                        var structSize = _leb128.BuildLEB128Unsigned(entry.StructSize);
+                        entriesStream.Write(structSize, 0, structSize.Length);
+                        entriesStream.Write(entry.UnknownData, 0, entry.UnknownData.Length);
+
+                        // write file size + file data + eof
+                        var fileSize = _leb128.BuildLEB128Unsigned(entry.FileSize);
+                        entriesStream.Write(fileSize, 0, fileSize.Length);
+                        entriesStream.Write(entry.FileData, 0, entry.FileData.Length);
+                        entriesStream.Write(_zeros, 0, __EOF_SIZE);
+                    }
+
+                    entriesStream.Write(_zeros, 0, __EOP_SIZE);
+
+                    // extract recorded data
+                    entriesStreamData = entriesStream.ToArray();
+                }
+
+                // encrypt and write entries data
+                dataStream.Write(entriesStreamData, 0, entriesStreamData.Length);
+
+                // extract recorded data
+                data = dataStream.ToArray();
+            }
+
+            // write constructed initfs_ to file
+            using (var writer = new BinaryWriter(target))
+            {
+                writer.Write(data);
+            }
+        }
 
         #endregion
     }

@@ -32,9 +32,9 @@ namespace BFInitfsEditor.Data
 
         #region IInitfsReader
 
-        public Entity Read(Stream source)
+        public Entity ReadEncrypted(Stream source)
         {
-            var entity = new Entity();
+            var entity = new Entity { IsEncrypted = true };
             var data = entity.Data;
 
             using (var reader = new BinaryReader(source))
@@ -43,7 +43,7 @@ namespace BFInitfsEditor.Data
                 entity.Header = reader.ReadBytes(DICE_HEADER_SIZE);
                 reader.Seek(CONST.POST_HEADER_SPACE, SeekOrigin.Current); // skip zero bytes
 
-                if (! _ValidateHeader(entity.Header)) throw new InvalidOperationException("file header was not recognized.");
+                if (! _ValidateHeader(entity.Header)) throw new InvalidOperationException("File header was not recognized.");
 
                 // read hash 'x' + hash + 'x'
                 entity.Hash = reader.ReadBytes(CONST.FULL_HASH_SIZE);
@@ -61,6 +61,38 @@ namespace BFInitfsEditor.Data
                 var position = 0;
                 var dataEntries = new List<FileEntry>();
                 
+                // read unknown data
+                data.DataSize = _leb128.ReadLEB128Unsigned(decryptedData, ref position);
+
+                // read all file entries
+                while (position < decryptedData.Length)
+                {
+                    var entry = _ReadEntry(decryptedData, ref position);
+                    if (entry == null) break;
+
+                    dataEntries.Add(entry);
+                }
+
+                data.Entries = dataEntries.ToArray();
+            }
+
+            return entity;
+        }
+
+        public Entity ReadDecrypted(Stream source)
+        {
+            var entity = new Entity { IsEncrypted = false };
+            var data = entity.Data;
+
+            using (var reader = new BinaryReader(source))
+            {
+                // read all file data
+                var decryptedData = reader.ReadAllBytes();
+
+                // parse payload
+                var position = 0;
+                var dataEntries = new List<FileEntry>();
+
                 // read unknown data
                 data.DataSize = _leb128.ReadLEB128Unsigned(decryptedData, ref position);
 

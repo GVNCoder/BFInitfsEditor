@@ -19,10 +19,15 @@
     mc:Ignorable="d">
 
     <Window.CommandBindings>
+        <CommandBinding Command="{x:Static shortcuts:ShortcutCommands.OpenDecryptedFileCommand}" Executed="_OpenDecryptedFileCommandExecuted" />
         <CommandBinding Command="{x:Static shortcuts:ShortcutCommands.OpenFileCommand}" Executed="_OpenFileCommandExecuted" />
         <CommandBinding Command="{x:Static shortcuts:ShortcutCommands.SaveAsCommand}" Executed="_SaveAsCommandExecuted" />
     </Window.CommandBindings>
     <Window.InputBindings>
+        <KeyBinding
+            Key="D"
+            Command="{x:Static shortcuts:ShortcutCommands.OpenDecryptedFileCommand}"
+            Modifiers="Control" />
         <KeyBinding
             Key="O"
             Command="{x:Static shortcuts:ShortcutCommands.OpenFileCommand}"
@@ -60,6 +65,11 @@
                     Click="_OpenMenuClickHandler"
                     Header="Open"
                     InputGestureText="Ctrl+O" />
+                <MenuItem
+                    Name="UIOpenDecryptedItem"
+                    Click="_OpenDecryptedMenuClickHandler"
+                    Header="Open decrypted"
+                    InputGestureText="Ctrl+D" />
                 <MenuItem
                     Name="UISaveAsItem"
                     Click="_SaveMenuClickHandler"
